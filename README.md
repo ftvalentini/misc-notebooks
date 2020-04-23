@@ -1,2 +1,7 @@
-# misc-notebooks
-Notebooks about stuff
+# Notebooks about things
+
+Contents:
+
+- [Trying to find hypallages in Borges' short stories with some NLP](borges_hipalages.ipynb)
+- [Trying to understand Gradient Boosting](gradient_boosting.nb.html)
+
