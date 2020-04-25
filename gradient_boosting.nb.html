@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 
@@ -1478,12 +1478,12 @@ window.initializeCodeFolding = function(show) {
   var currentIndex = 1;
 
   // select all R code blocks
-  var rCodeBlocks = $('pre.r, pre.python, pre.bash, pre.sql, pre.cpp, pre.stan');
+  var rCodeBlocks = $('pre.r, pre.python, pre.bash, pre.sql, pre.cpp, pre.stan, pre.julia');
   rCodeBlocks.each(function() {
 
     // create a collapsable div to wrap the code in
     var div = $('<div class="collapse r-code-collapse"></div>');
-    if (show)
+    if (show || $(this)[0].classList.contains('fold-show'))
       div.addClass('in');
     var id = 'rcode-643E0F36' + currentIndex++;
     div.attr('id', id);
@@ -1599,9 +1599,7 @@ h6 {
 </style>
 
 
-</head>
 
-<body>
 
 <style type="text/css">
 .main-container {
@@ -1615,7 +1613,6 @@ code {
 }
 img {
   max-width:100%;
-  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -1625,6 +1622,9 @@ img {
 }
 button.code-folding-btn:focus {
   outline: none;
+}
+summary {
+  display: list-item;
 }
 </style>
 
@@ -1653,8 +1653,6 @@ button.code-folding-btn:focus {
 }
 </style>
 
-
-<div class="container-fluid main-container">
 
 <!-- tabsets -->
 
@@ -1700,6 +1698,7 @@ button.code-folding-btn:focus {
   border: none;
   display: inline-block;
   border-radius: 4px;
+  background-color: transparent;
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
@@ -1712,29 +1711,20 @@ button.code-folding-btn:focus {
 }
 </style>
 
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
 <!-- code folding -->
 <style type="text/css">
 .code-folding-btn { margin-bottom: 4px; }
 </style>
-<script>
-$(document).ready(function () {
-  window.initializeSourceEmbed("gradient_boosting.Rmd");
-  window.initializeCodeFolding("show" === "show");
-});
-</script>
 
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
 
 
 
@@ -1761,6 +1751,7 @@ $(document).ready(function () {
 <!-- rnb-text-begin -->
 <div id="aprendizaje-supervisado" class="section level2">
 <h2>Aprendizaje supervisado</h2>
+<p>Función de pérdida <span class="math inline">\(J(\mathbf{y},\mathbf{\hat{y}})\)</span></p>
 </div>
 <div id="boosting" class="section level2">
 <h2>Boosting</h2>
@@ -1772,11 +1763,27 @@ $(document).ready(function () {
 <h2>Gradient Boosting</h2>
 <p>En particular, la técnica de <em>gradient boosting</em> ajusta la función <span class="math inline">\(f\)</span> usando descenso por el gradiente en el espacio funcional.</p>
 <p>En el caso tradicional de descenso por el gradiente, el descenso se hace en el espacio de los parámetros. Por ejemplo, si la predicción <span class="math inline">\(\hat{y}\)</span> tuviera la forma de una proyección lineal que depende de un vector de parámetros <span class="math inline">\(\mathbf{\theta} \in \mathbb{R}^p\)</span> tal que <span class="math inline">\(\hat{y}_i = f(\mathbf{x}_i) = \mathbf{x}_i^T\mathbf{\theta}\)</span>, se puede ajustar <span class="math inline">\(f\)</span> ajustando <span class="math inline">\(\theta\)</span> secuencialmente desciendendo por el gradiente de la pérdida <span class="math inline">\(J\)</span> con respecto a <span class="math inline">\(\theta\)</span>:</p>
-<p><span class="math display">\[ \mathbf{\theta}^{(k)} = \mathbf{\theta}^{(k-1)} - \lambda \frac{\partial J}{\partial \mathbf{\theta}^{(k-1)}} \]</span> donde <span class="math inline">\(\lambda\)</span> representa la tasa de aprendizaje –es decir, el tamaño del ajuste que se realiza en la dirección del gradiente– y <span class="math inline">\(\theta\)</span> se inicializa en valores al azar. Desde luego, la forma específica que tome la derivada <span class="math inline">\(\frac{\partial J}{\partial \mathbf{\theta}^{(k)}}\)</span> dependerá de la función de pérdida elegida. El vector <span class="math inline">\(\theta\)</span> que se obtiene luego de <span class="math inline">\(K\)</span> iteraciones puede usarse para predecir cualquier set de observaciones.</p>
+<p><span class="math display">\[ \mathbf{\theta}^{(k)} = \mathbf{\theta}^{(k-1)} - \alpha \frac{\partial J}{\partial \mathbf{\theta}^{(k-1)}} \]</span></p>
+<p>donde <span class="math inline">\(\alpha\)</span> representa la tasa de aprendizaje –es decir, el tamaño del ajuste que se realiza en la dirección del gradiente– y <span class="math inline">\(\theta\)</span> se inicializa en valores al azar. Desde luego, la forma específica que tome la derivada <span class="math inline">\(\frac{\partial J}{\partial \mathbf{\theta}^{(k)}}\)</span> dependerá de la función de pérdida elegida. El vector <span class="math inline">\(\theta\)</span> que se obtiene luego de <span class="math inline">\(K\)</span> iteraciones puede usarse para predecir cualquier set de observaciones.</p>
 <p>En algunos modelos el vector de predicciones <span class="math inline">\(\mathbf{\hat{y}}\)</span> no depende de parámetros con respecto a los cuales se puedan tomar derivadas. Este el caso de los CART. En este contexto el objetivo <span class="math inline">\(J\)</span> se puede optimizar secuencialmente usando el gradiente de <span class="math inline">\(J\)</span> con respecto a las predicciones <span class="math inline">\(\mathbf{\hat{y}}\)</span> tal que:</p>
-<p><span class="math display">\[ \mathbf{\hat{y}}^{(k)} = \mathbf{\hat{y}}^{(k-1)} - \lambda \frac{\partial J}{\partial \mathbf{\hat{y}}^{(k-1)}} \]</span></p>
+<p><span class="math display">\[ \mathbf{\hat{y}}^{(k)} = \mathbf{\hat{y}}^{(k-1)} - \alpha \frac{\partial J}{\partial \mathbf{\hat{y}}^{(k-1)}} \]</span></p>
 <p>donde <span class="math inline">\(\mathbf{\hat{y}}\)</span> se iniciliza en valores al azar.</p>
-<p>Sin embargo esta forma de descender por el gradiente no devuelve ninguna forma funcional que se pueda aplicar a nuevas observaciones. Solo nos permite obtener predicciones <span class="math inline">\(\hat{y}_i\)</span> para las mismas observaciones <span class="math inline">\(i\)</span> con las que se realiza la optimización.</p>
+<p>Sin embargo esta forma de descender por el gradiente no devuelve ninguna forma funcional que se pueda aplicar a nuevas observaciones. Solo nos permite obtener predicciones <span class="math inline">\(\hat{y}_i\)</span> para las mismas observaciones <span class="math inline">\(i\)</span> con las que se realiza la optimización. De hecho, lo único que estamos haciendo es corregir <span class="math inline">\(\mathbf\hat{y}}\)</span> iterativamente hasta que resulte ser igual a <span class="math inline">\(\mathbf{y}\)</span> y la pérdida sea igual a 0 en los datos de entrenamiento.</p>
+<p>Este problema se puede resolver de la siguiete manera:</p>
+<p>En lugar de actualizar las predicciones con el verdadero valor del gradiente según las datos de entrenamiento, se puede entrenar un modelo en cada iteración que estime esta dirección. Estos modelos son los estimadores base <span class="math inline">\(h_k\)</span> de <em>boosting</em>. También se conocen como <em>weak learners</em> porque es necesario usar modelos poco complejos para evitar el sobreajuste. En el caso de <em>Gradient Boosted Trees</em> son CARTs.</p>
+<p>Definiendo <span class="math inline">\(r^{(k-1)}=\frac{\partial J}{\partial \mathbf{\hat{y}}^{(k-1)}}\)</span> podemos redefinir la ecuación de ajuste como:</p>
+<p><span class="math display">\[ \mathbf{\hat{y}}^{(k)} = \mathbf{\hat{y}}^{(k-1)} - \alpha h_{k}(\mathbf{x}) \]</span></p>
+<p>Cada estimador <span class="math inline">\(h_k\)</span> de la fórmula de predicción de boosting <span class="math inline">\(\hat{y}_i = f(\mathbf{x}_i) = \sum_{k=1}^{K} h_k(\mathbf{x}_i)\)</span> aprende un <em>mapping</em> de <span class="math inline">\({\mathbf{x}}\)</span> hacia <span class="math inline">\(r^{(k-1)}\)</span>. La magnitud de las predicciones de <span class="math inline">\(h_k\)</span> en cada iteración dependerá obviamente de la magnitud de los gradientes <span class="math inline">\(r^{(k-1)}\)</span> durante el entrenamiento, que decrecen tendencialmente a medida que crece <span class="math inline">\(k\)</span>.</p>
+<p><em>FALTA: EXPLICAR QUE GRADIENTE SE PUEDE ENTENDER COMO RESIDUO y por eso va mejorando la predicción</em></p>
+</div>
+<div id="implementaciones" class="section level2">
+<h2>Implementaciones</h2>
+<div id="xgboost" class="section level3">
+<h3>XGBoost</h3>
+</div>
+<div id="lightgbm" class="section level3">
+<h3>LightGBM</h3>
+</div>
 </div>
 <div id="referencias" class="section level2">
 <h2>Referencias</h2>
@@ -1788,7 +1795,7 @@ $(document).ready(function () {
 <!-- rnb-text-end -->
 </div>
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIkdyYWRpZW50IGJvb3N0aW5nIg0Kb3V0cHV0OiBodG1sX25vdGVib29rDQotLS0NCg0KIyMgQXByZW5kaXphamUgc3VwZXJ2aXNhZG8NCg0KIyMgQm9vc3RpbmcNCg0KRXN0aW1hciAkeSQgY29uICRcaGF0e3l9JCBjb24gdW5hIHN1bWEgZGUgJEskIGVzdGltYWRvcmVzIGJhc2UgJGhfayQgcXVlIGRlcGVuZGVuIGRlICRcbWF0aGJme3h9IFxpbiBcbWF0aGJie1J9XnAkIHRhbCBxdWUgcGFyYSBjYWRhIG9ic2VydmFjacOzbiAkaSQ6DQoNCiQkXGhhdHt5fV9pID0gZihcbWF0aGJme3h9X2kpID0gXHN1bV97az0xfV57S30gaF9rKFxtYXRoYmZ7eH1faSkkJA0KDQpMb3MgJGhfayQgc2UgZW50cmVuYW4gc2VjdWVuY2lhbG1lbnRlIHVzYW5kbyBsYSBwcmVkaWNjacOzbiBkZWwgZXN0aW1hZG9yIGFudGVyaW9yIC0tIGVzIGRlY2lyLCBjYWRhIGVzdGltYWRvciAkayQgc2UgYWp1c3RhIHVzYW5kbyBsb3MgcmVzaWR1b3MgZGVsIGVzdGltYWRvciAkay0xJC4gRGUgZXN0YSBtYW5lcmEsIGxhIGZ1bmNpw7NuIGRlIHByZWRpY2Npw7NuIHZhIG1lam9yYW5kbyBsZW50YW1lbnRlIGVuIMOhcmVhcyBkb25kZSBubyBhanVzdGEgYmllbi4NCg0KIyMgR3JhZGllbnQgQm9vc3RpbmcNCg0KRW4gcGFydGljdWxhciwgbGEgdMOpY25pY2EgZGUgKmdyYWRpZW50IGJvb3N0aW5nKiBhanVzdGEgbGEgZnVuY2nDs24gJGYkIHVzYW5kbyBkZXNjZW5zbyBwb3IgZWwgZ3JhZGllbnRlIGVuIGVsIGVzcGFjaW8gZnVuY2lvbmFsLg0KDQpFbiBlbCBjYXNvIHRyYWRpY2lvbmFsIGRlIGRlc2NlbnNvIHBvciBlbCBncmFkaWVudGUsIGVsIGRlc2NlbnNvIHNlIGhhY2UgZW4gZWwgZXNwYWNpbyBkZSBsb3MgcGFyw6FtZXRyb3MuIFBvciBlamVtcGxvLCBzaSBsYSBwcmVkaWNjacOzbiAkXGhhdHt5fSQgdHV2aWVyYSBsYSBmb3JtYSBkZSB1bmEgcHJveWVjY2nDs24gbGluZWFsIHF1ZSBkZXBlbmRlIGRlIHVuIHZlY3RvciBkZSBwYXLDoW1ldHJvcyAkXG1hdGhiZntcdGhldGF9IFxpbiBcbWF0aGJie1J9XnAkIHRhbCBxdWUgJFxoYXR7eX1faSA9IGYoXG1hdGhiZnt4fV9pKSA9IFxtYXRoYmZ7eH1faV5UXG1hdGhiZntcdGhldGF9JCwgc2UgcHVlZGUgYWp1c3RhciAkZiQgYWp1c3RhbmRvICRcdGhldGEkIHNlY3VlbmNpYWxtZW50ZSBkZXNjaWVuZGVuZG8gcG9yIGVsIGdyYWRpZW50ZSBkZSBsYSBww6lyZGlkYSAkSiQgY29uIHJlc3BlY3RvIGEgJFx0aGV0YSQ6IA0KDQokJCBcbWF0aGJme1x0aGV0YX1eeyhrKX0gPSBcbWF0aGJme1x0aGV0YX1eeyhrLTEpfSAtIFxsYW1iZGEgXGZyYWN7XHBhcnRpYWwgSn17XHBhcnRpYWwgXG1hdGhiZntcdGhldGF9Xnsoay0xKX19ICQkDQpkb25kZSAkXGxhbWJkYSQgcmVwcmVzZW50YSBsYSB0YXNhIGRlIGFwcmVuZGl6YWplIC0tZXMgZGVjaXIsIGVsIHRhbWHDsW8gZGVsIGFqdXN0ZSBxdWUgc2UgcmVhbGl6YSBlbiBsYSBkaXJlY2Npw7NuIGRlbCBncmFkaWVudGUtLSB5ICRcdGhldGEkIHNlIGluaWNpYWxpemEgZW4gdmFsb3JlcyBhbCBhemFyLiBEZXNkZSBsdWVnbywgbGEgZm9ybWEgZXNwZWPDrWZpY2EgcXVlIHRvbWUgbGEgZGVyaXZhZGEgJFxmcmFje1xwYXJ0aWFsIEp9e1xwYXJ0aWFsIFxtYXRoYmZ7XHRoZXRhfV57KGspfX0kIGRlcGVuZGVyw6EgZGUgbGEgZnVuY2nDs24gZGUgcMOpcmRpZGEgZWxlZ2lkYS4gRWwgdmVjdG9yICRcdGhldGEkIHF1ZSBzZSBvYnRpZW5lIGx1ZWdvIGRlICRLJCBpdGVyYWNpb25lcyBwdWVkZSB1c2Fyc2UgcGFyYSBwcmVkZWNpciBjdWFscXVpZXIgc2V0IGRlIG9ic2VydmFjaW9uZXMuIA0KDQpFbiBhbGd1bm9zIG1vZGVsb3MgZWwgdmVjdG9yIGRlIHByZWRpY2Npb25lcyAkXG1hdGhiZntcaGF0e3l9fSQgbm8gZGVwZW5kZSBkZSBwYXLDoW1ldHJvcyBjb24gcmVzcGVjdG8gYSBsb3MgY3VhbGVzIHNlIHB1ZWRhbiB0b21hciBkZXJpdmFkYXMuIEVzdGUgZWwgY2FzbyBkZSBsb3MgQ0FSVC4gRW4gZXN0ZSBjb250ZXh0byBlbCBvYmpldGl2byAkSiQgc2UgcHVlZGUgb3B0aW1pemFyIHNlY3VlbmNpYWxtZW50ZSB1c2FuZG8gZWwgZ3JhZGllbnRlIGRlICRKJCBjb24gcmVzcGVjdG8gYSBsYXMgcHJlZGljY2lvbmVzICRcbWF0aGJme1xoYXR7eX19JCB0YWwgcXVlOg0KDQokJCBcbWF0aGJme1xoYXR7eX19Xnsoayl9ID0gXG1hdGhiZntcaGF0e3l9fV57KGstMSl9IC0gXGxhbWJkYSBcZnJhY3tccGFydGlhbCBKfXtccGFydGlhbCBcbWF0aGJme1xoYXR7eX19Xnsoay0xKX19ICQkDQoNCmRvbmRlICRcbWF0aGJme1xoYXR7eX19JCBzZSBpbmljaWxpemEgZW4gdmFsb3JlcyBhbCBhemFyLg0KDQpTaW4gZW1iYXJnbyBlc3RhIGZvcm1hIGRlIGRlc2NlbmRlciBwb3IgZWwgZ3JhZGllbnRlIG5vIGRldnVlbHZlIG5pbmd1bmEgZm9ybWEgZnVuY2lvbmFsIHF1ZSBzZSBwdWVkYSBhcGxpY2FyIGEgbnVldmFzIG9ic2VydmFjaW9uZXMuIFNvbG8gbm9zIHBlcm1pdGUgb2J0ZW5lciBwcmVkaWNjaW9uZXMgJFxoYXR7eX1faSQgcGFyYSBsYXMgbWlzbWFzIG9ic2VydmFjaW9uZXMgJGkkIGNvbiBsYXMgcXVlIHNlIHJlYWxpemEgbGEgb3B0aW1pemFjacOzbi4gDQoNCiMjIFJlZmVyZW5jaWFzDQoNCi0gaHR0cHM6Ly9leHBsYWluZWQuYWkvZ3JhZGllbnQtYm9vc3RpbmcvDQotIGh0dHBzOi8vaG9tZXMuY3Mud2FzaGluZ3Rvbi5lZHUvfnRxY2hlbi9wZGYvQm9vc3RlZFRyZWUucGRmDQotIGh0dHA6Ly9uaWNvbGFzLWh1Zy5jb20vYmxvZy9ncmFkaWVudF9ib29zdGluZ19kZXNjZW50DQo=</div>
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIkdyYWRpZW50IGJvb3N0aW5nIg0Kb3V0cHV0OiBodG1sX25vdGVib29rDQotLS0NCg0KIyMgQXByZW5kaXphamUgc3VwZXJ2aXNhZG8NCg0KRnVuY2nDs24gZGUgcMOpcmRpZGEgJEooXG1hdGhiZnt5fSxcbWF0aGJme1xoYXR7eX19KSQNCg0KIyMgQm9vc3RpbmcNCg0KRXN0aW1hciAkeSQgY29uICRcaGF0e3l9JCBjb24gdW5hIHN1bWEgZGUgJEskIGVzdGltYWRvcmVzIGJhc2UgJGhfayQgcXVlIGRlcGVuZGVuIGRlICRcbWF0aGJme3h9IFxpbiBcbWF0aGJie1J9XnAkIHRhbCBxdWUgcGFyYSBjYWRhIG9ic2VydmFjacOzbiAkaSQ6DQoNCiQkXGhhdHt5fV9pID0gZihcbWF0aGJme3h9X2kpID0gXHN1bV97az0xfV57S30gaF9rKFxtYXRoYmZ7eH1faSkkJA0KDQpMb3MgJGhfayQgc2UgZW50cmVuYW4gc2VjdWVuY2lhbG1lbnRlIHVzYW5kbyBsYSBwcmVkaWNjacOzbiBkZWwgZXN0aW1hZG9yIGFudGVyaW9yIC0tIGVzIGRlY2lyLCBjYWRhIGVzdGltYWRvciAkayQgc2UgYWp1c3RhIHVzYW5kbyBsb3MgcmVzaWR1b3MgZGVsIGVzdGltYWRvciAkay0xJC4gRGUgZXN0YSBtYW5lcmEsIGxhIGZ1bmNpw7NuIGRlIHByZWRpY2Npw7NuIHZhIG1lam9yYW5kbyBsZW50YW1lbnRlIGVuIMOhcmVhcyBkb25kZSBubyBhanVzdGEgYmllbi4NCg0KIyMgR3JhZGllbnQgQm9vc3RpbmcNCg0KRW4gcGFydGljdWxhciwgbGEgdMOpY25pY2EgZGUgKmdyYWRpZW50IGJvb3N0aW5nKiBhanVzdGEgbGEgZnVuY2nDs24gJGYkIHVzYW5kbyBkZXNjZW5zbyBwb3IgZWwgZ3JhZGllbnRlIGVuIGVsIGVzcGFjaW8gZnVuY2lvbmFsLg0KDQpFbiBlbCBjYXNvIHRyYWRpY2lvbmFsIGRlIGRlc2NlbnNvIHBvciBlbCBncmFkaWVudGUsIGVsIGRlc2NlbnNvIHNlIGhhY2UgZW4gZWwgZXNwYWNpbyBkZSBsb3MgcGFyw6FtZXRyb3MuIFBvciBlamVtcGxvLCBzaSBsYSBwcmVkaWNjacOzbiAkXGhhdHt5fSQgdHV2aWVyYSBsYSBmb3JtYSBkZSB1bmEgcHJveWVjY2nDs24gbGluZWFsIHF1ZSBkZXBlbmRlIGRlIHVuIHZlY3RvciBkZSBwYXLDoW1ldHJvcyAkXG1hdGhiZntcdGhldGF9IFxpbiBcbWF0aGJie1J9XnAkIHRhbCBxdWUgJFxoYXR7eX1faSA9IGYoXG1hdGhiZnt4fV9pKSA9IFxtYXRoYmZ7eH1faV5UXG1hdGhiZntcdGhldGF9JCwgc2UgcHVlZGUgYWp1c3RhciAkZiQgYWp1c3RhbmRvICRcdGhldGEkIHNlY3VlbmNpYWxtZW50ZSBkZXNjaWVuZGVuZG8gcG9yIGVsIGdyYWRpZW50ZSBkZSBsYSBww6lyZGlkYSAkSiQgY29uIHJlc3BlY3RvIGEgJFx0aGV0YSQ6IA0KDQokJCBcbWF0aGJme1x0aGV0YX1eeyhrKX0gPSBcbWF0aGJme1x0aGV0YX1eeyhrLTEpfSAtIFxhbHBoYSBcZnJhY3tccGFydGlhbCBKfXtccGFydGlhbCBcbWF0aGJme1x0aGV0YX1eeyhrLTEpfX0gJCQNCg0KZG9uZGUgJFxhbHBoYSQgcmVwcmVzZW50YSBsYSB0YXNhIGRlIGFwcmVuZGl6YWplIC0tZXMgZGVjaXIsIGVsIHRhbWHDsW8gZGVsIGFqdXN0ZSBxdWUgc2UgcmVhbGl6YSBlbiBsYSBkaXJlY2Npw7NuIGRlbCBncmFkaWVudGUtLSB5ICRcdGhldGEkIHNlIGluaWNpYWxpemEgZW4gdmFsb3JlcyBhbCBhemFyLiBEZXNkZSBsdWVnbywgbGEgZm9ybWEgZXNwZWPDrWZpY2EgcXVlIHRvbWUgbGEgZGVyaXZhZGEgJFxmcmFje1xwYXJ0aWFsIEp9e1xwYXJ0aWFsIFxtYXRoYmZ7XHRoZXRhfV57KGspfX0kIGRlcGVuZGVyw6EgZGUgbGEgZnVuY2nDs24gZGUgcMOpcmRpZGEgZWxlZ2lkYS4gRWwgdmVjdG9yICRcdGhldGEkIHF1ZSBzZSBvYnRpZW5lIGx1ZWdvIGRlICRLJCBpdGVyYWNpb25lcyBwdWVkZSB1c2Fyc2UgcGFyYSBwcmVkZWNpciBjdWFscXVpZXIgc2V0IGRlIG9ic2VydmFjaW9uZXMuIA0KDQpFbiBhbGd1bm9zIG1vZGVsb3MgZWwgdmVjdG9yIGRlIHByZWRpY2Npb25lcyAkXG1hdGhiZntcaGF0e3l9fSQgbm8gZGVwZW5kZSBkZSBwYXLDoW1ldHJvcyBjb24gcmVzcGVjdG8gYSBsb3MgY3VhbGVzIHNlIHB1ZWRhbiB0b21hciBkZXJpdmFkYXMuIEVzdGUgZWwgY2FzbyBkZSBsb3MgQ0FSVC4gRW4gZXN0ZSBjb250ZXh0byBlbCBvYmpldGl2byAkSiQgc2UgcHVlZGUgb3B0aW1pemFyIHNlY3VlbmNpYWxtZW50ZSB1c2FuZG8gZWwgZ3JhZGllbnRlIGRlICRKJCBjb24gcmVzcGVjdG8gYSBsYXMgcHJlZGljY2lvbmVzICRcbWF0aGJme1xoYXR7eX19JCB0YWwgcXVlOg0KDQokJCBcbWF0aGJme1xoYXR7eX19Xnsoayl9ID0gXG1hdGhiZntcaGF0e3l9fV57KGstMSl9IC0gXGFscGhhIFxmcmFje1xwYXJ0aWFsIEp9e1xwYXJ0aWFsIFxtYXRoYmZ7XGhhdHt5fX1eeyhrLTEpfX0gJCQNCg0KZG9uZGUgJFxtYXRoYmZ7XGhhdHt5fX0kIHNlIGluaWNpbGl6YSBlbiB2YWxvcmVzIGFsIGF6YXIuDQoNClNpbiBlbWJhcmdvIGVzdGEgZm9ybWEgZGUgZGVzY2VuZGVyIHBvciBlbCBncmFkaWVudGUgbm8gZGV2dWVsdmUgbmluZ3VuYSBmb3JtYSBmdW5jaW9uYWwgcXVlIHNlIHB1ZWRhIGFwbGljYXIgYSBudWV2YXMgb2JzZXJ2YWNpb25lcy4gU29sbyBub3MgcGVybWl0ZSBvYnRlbmVyIHByZWRpY2Npb25lcyAkXGhhdHt5fV9pJCBwYXJhIGxhcyBtaXNtYXMgb2JzZXJ2YWNpb25lcyAkaSQgY29uIGxhcyBxdWUgc2UgcmVhbGl6YSBsYSBvcHRpbWl6YWNpw7NuLiBEZSBoZWNobywgbG8gw7puaWNvIHF1ZSBlc3RhbW9zIGhhY2llbmRvIGVzIGNvcnJlZ2lyICRcbWF0aGJmXGhhdHt5fX0kIGl0ZXJhdGl2YW1lbnRlIGhhc3RhIHF1ZSByZXN1bHRlIHNlciBpZ3VhbCBhICRcbWF0aGJme3l9JCB5IGxhIHDDqXJkaWRhIHNlYSBpZ3VhbCBhIDAgZW4gbG9zIGRhdG9zIGRlIGVudHJlbmFtaWVudG8uIA0KDQpFc3RlIHByb2JsZW1hIHNlIHB1ZWRlIHJlc29sdmVyIGRlIGxhIHNpZ3VpZXRlIG1hbmVyYToNCg0KRW4gbHVnYXIgZGUgYWN0dWFsaXphciBsYXMgcHJlZGljY2lvbmVzIGNvbiBlbCB2ZXJkYWRlcm8gdmFsb3IgZGVsIGdyYWRpZW50ZSBzZWfDum4gbGFzIGRhdG9zIGRlIGVudHJlbmFtaWVudG8sIHNlIHB1ZWRlIGVudHJlbmFyIHVuIG1vZGVsbyBlbiBjYWRhIGl0ZXJhY2nDs24gcXVlIGVzdGltZSBlc3RhIGRpcmVjY2nDs24uIEVzdG9zIG1vZGVsb3Mgc29uIGxvcyBlc3RpbWFkb3JlcyBiYXNlICRoX2skIGRlICpib29zdGluZyouIFRhbWJpw6luIHNlIGNvbm9jZW4gY29tbyAqd2VhayBsZWFybmVycyogcG9ycXVlIGVzIG5lY2VzYXJpbyB1c2FyIG1vZGVsb3MgcG9jbyBjb21wbGVqb3MgcGFyYSBldml0YXIgZWwgc29icmVhanVzdGUuIEVuIGVsIGNhc28gZGUgKkdyYWRpZW50IEJvb3N0ZWQgVHJlZXMqIHNvbiBDQVJUcy4NCg0KRGVmaW5pZW5kbyAkcl57KGstMSl9PVxmcmFje1xwYXJ0aWFsIEp9e1xwYXJ0aWFsIFxtYXRoYmZ7XGhhdHt5fX1eeyhrLTEpfX0kIHBvZGVtb3MgcmVkZWZpbmlyIGxhIGVjdWFjacOzbiBkZSBhanVzdGUgY29tbzoNCg0KJCQgXG1hdGhiZntcaGF0e3l9fV57KGspfSA9IFxtYXRoYmZ7XGhhdHt5fX1eeyhrLTEpfSAtIFxhbHBoYSBoX3trfShcbWF0aGJme3h9KSAkJA0KDQpDYWRhIGVzdGltYWRvciAkaF9rJCBkZSBsYSBmw7NybXVsYSBkZSBwcmVkaWNjacOzbiBkZSBib29zdGluZyAkXGhhdHt5fV9pID0gZihcbWF0aGJme3h9X2kpID0gXHN1bV97az0xfV57S30gaF9rKFxtYXRoYmZ7eH1faSkkIGFwcmVuZGUgdW4gKm1hcHBpbmcqIGRlICR7XG1hdGhiZnt4fX0kIGhhY2lhICRyXnsoay0xKX0kLiBMYSBtYWduaXR1ZCBkZSBsYXMgcHJlZGljY2lvbmVzIGRlICRoX2skIGVuIGNhZGEgaXRlcmFjacOzbiBkZXBlbmRlcsOhIG9idmlhbWVudGUgZGUgbGEgbWFnbml0dWQgZGUgbG9zIGdyYWRpZW50ZXMgJHJeeyhrLTEpfSQgZHVyYW50ZSBlbCBlbnRyZW5hbWllbnRvLCBxdWUgZGVjcmVjZW4gdGVuZGVuY2lhbG1lbnRlIGEgbWVkaWRhIHF1ZSBjcmVjZSAkayQuICAgDQoNCg0KKkZBTFRBOiBFWFBMSUNBUiBRVUUgR1JBRElFTlRFIFNFIFBVRURFIEVOVEVOREVSIENPTU8gUkVTSURVTyB5IHBvciBlc28gdmEgbWVqb3JhbmRvIGxhIHByZWRpY2Npw7NuKg0KDQojIyBJbXBsZW1lbnRhY2lvbmVzDQoNCiMjIyBYR0Jvb3N0DQoNCg0KIyMjIExpZ2h0R0JNDQoNCiMjIFJlZmVyZW5jaWFzDQoNCi0gaHR0cHM6Ly9leHBsYWluZWQuYWkvZ3JhZGllbnQtYm9vc3RpbmcvDQotIGh0dHBzOi8vaG9tZXMuY3Mud2FzaGluZ3Rvbi5lZHUvfnRxY2hlbi9wZGYvQm9vc3RlZFRyZWUucGRmDQotIGh0dHA6Ly9uaWNvbGFzLWh1Zy5jb20vYmxvZy9ncmFkaWVudF9ib29zdGluZ19kZXNjZW50DQo=</div>
 
 
 
@@ -1817,6 +1824,29 @@ $(document).ready(function () {
 });
 
 </script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeSourceEmbed("gradient_boosting.Rmd");
+  window.initializeCodeFolding("show" === "show");
+});
+</script>
+
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>
