@@ -1,6 +1,9 @@
 ---
 title: "Gradient boosting"
-output: html_notebook
+# output: html_notebook
+output: 
+  github_document: default
+  html_notebook: default
 ---
 
 ## Aprendizaje supervisado
@@ -9,11 +12,13 @@ Función de pérdida $J(\mathbf{y},\mathbf{\hat{y}})$
 
 ## Boosting
 
-Estimar $y$ con $\hat{y}$ con una suma de $K$ estimadores base $h_k$ que dependen de $\mathbf{x} \in \mathbb{R}^p$ tal que para cada observación $i$:
+*incluir cosas de Elements*
 
-$$\hat{y}_i = f(\mathbf{x}_i) = \sum_{k=1}^{K} h_k(\mathbf{x}_i)$$
+Estimar $y$ con $\hat{y}$ con una suma de $M$ estimadores base $h_m$ que dependen de $\mathbf{x} \in \mathbb{R}^p$ tal que para cada observación $i$:
 
-Los $h_k$ se entrenan secuencialmente usando la predicción del estimador anterior -- es decir, cada estimador $k$ se ajusta usando los residuos del estimador $k-1$. De esta manera, la función de predicción va mejorando lentamente en áreas donde no ajusta bien.
+$$\hat{y}_i = f(\mathbf{x}_i) = \sum_{m=1}^{M} h_m(\mathbf{x}_i)$$
+
+Los $h_m$ se entrenan secuencialmente usando la predicción del estimador anterior -- es decir, cada estimador $m$ se ajusta usando los residuos del estimador $m-1$. De esta manera, la función de predicción va mejorando lentamente en áreas donde no ajusta bien.
 
 ## Gradient Boosting
 
@@ -21,13 +26,13 @@ En particular, la técnica de *gradient boosting* ajusta la función $f$ usando 
 
 En el caso tradicional de descenso por el gradiente, el descenso se hace en el espacio de los parámetros. Por ejemplo, si la predicción $\hat{y}$ tuviera la forma de una proyección lineal que depende de un vector de parámetros $\mathbf{\theta} \in \mathbb{R}^p$ tal que $\hat{y}_i = f(\mathbf{x}_i) = \mathbf{x}_i^T\mathbf{\theta}$, se puede ajustar $f$ ajustando $\theta$ secuencialmente desciendendo por el gradiente de la pérdida $J$ con respecto a $\theta$: 
 
-$$ \mathbf{\theta}^{(k)} = \mathbf{\theta}^{(k-1)} - \alpha \frac{\partial J}{\partial \mathbf{\theta}^{(k-1)}} $$
+$$ \mathbf{\theta}^{(m)} = \mathbf{\theta}^{(m-1)} - \eta \frac{\partial J}{\partial \mathbf{\theta}^{(m-1)}} $$
 
-donde $\alpha$ representa la tasa de aprendizaje --es decir, el tamaño del ajuste que se realiza en la dirección del gradiente-- y $\theta$ se inicializa en valores al azar. Desde luego, la forma específica que tome la derivada $\frac{\partial J}{\partial \mathbf{\theta}^{(k)}}$ dependerá de la función de pérdida elegida. El vector $\theta$ que se obtiene luego de $K$ iteraciones puede usarse para predecir cualquier set de observaciones. 
+donde $\eta$ representa la tasa de aprendizaje --es decir, el tamaño del ajuste que se realiza en la dirección del gradiente-- y $\theta$ se inicializa en valores al azar. Desde luego, la forma específica que tome la derivada $\frac{\partial J}{\partial \mathbf{\theta}^{(m)}}$ dependerá de la función de pérdida elegida. El vector $\theta$ que se obtiene luego de $M$ iteraciones puede usarse para predecir cualquier set de observaciones. 
 
 En algunos modelos el vector de predicciones $\mathbf{\hat{y}}$ no depende de parámetros con respecto a los cuales se puedan tomar derivadas. Este el caso de los CART. En este contexto el objetivo $J$ se puede optimizar secuencialmente usando el gradiente de $J$ con respecto a las predicciones $\mathbf{\hat{y}}$ tal que:
 
-$$ \mathbf{\hat{y}}^{(k)} = \mathbf{\hat{y}}^{(k-1)} - \alpha \frac{\partial J}{\partial \mathbf{\hat{y}}^{(k-1)}} $$
+$$ \mathbf{\hat{y}}^{(m)} = \mathbf{\hat{y}}^{(m-1)} - \eta \frac{\partial J}{\partial \mathbf{\hat{y}}^{(m-1)}} $$
 
 donde $\mathbf{\hat{y}}$ se iniciliza en valores al azar.
 
@@ -35,18 +40,41 @@ Sin embargo esta forma de descender por el gradiente no devuelve ninguna forma f
 
 Este problema se puede resolver de la siguiete manera:
 
-En lugar de actualizar las predicciones con el verdadero valor del gradiente según las datos de entrenamiento, se puede entrenar un modelo en cada iteración que estime esta dirección. Estos modelos son los estimadores base $h_k$ de *boosting*. También se conocen como *weak learners* porque es necesario usar modelos poco complejos para evitar el sobreajuste. En el caso de *Gradient Boosted Trees* son CARTs.
+En lugar de actualizar las predicciones con el verdadero valor del gradiente según las datos de entrenamiento, se puede entrenar un modelo en cada iteración que estime esta dirección. Estos modelos son los estimadores base $h_m$ de *boosting*. También se conocen como *weak learners* porque es necesario usar modelos poco complejos para evitar el sobreajuste. En el caso de *Gradient Boosted Trees* son CARTs.
 
-Definiendo $r^{(k-1)}=\frac{\partial J}{\partial \mathbf{\hat{y}}^{(k-1)}}$ podemos redefinir la ecuación de ajuste como:
+Definiendo $r^{(m-1)}=\frac{\partial J}{\partial \mathbf{\hat{y}}^{(m-1)}}$ podemos redefinir la ecuación de ajuste como:
 
-$$ \mathbf{\hat{y}}^{(k)} = \mathbf{\hat{y}}^{(k-1)} - \alpha h_{k}(\mathbf{x}) $$
+$$ \mathbf{\hat{y}}^{(m)} = \mathbf{\hat{y}}^{(m-1)} - \eta h_{m}(\mathbf{x}) $$
 
-Cada estimador $h_k$ de la fórmula de predicción de boosting $\hat{y}_i = f(\mathbf{x}_i) = \sum_{k=1}^{K} h_k(\mathbf{x}_i)$ aprende un *mapping* de ${\mathbf{x}}$ hacia $r^{(k-1)}$. La magnitud de las predicciones de $h_k$ en cada iteración dependerá obviamente de la magnitud de los gradientes $r^{(k-1)}$ durante el entrenamiento, que decrecen tendencialmente a medida que crece $k$.   
+Cada estimador $h_m$ de la fórmula de predicción de boosting $\hat{y}_i = f(\mathbf{x}_i) = \sum_{m=1}^{M} h_m(\mathbf{x}_i)$ aprende un *mapping* de ${\mathbf{x}}$ hacia $r^{(m-1)}$. La magnitud de las predicciones de $h_m$ en cada iteración dependerá obviamente de la magnitud de los gradientes $r^{(m-1)}$ durante el entrenamiento, que decrecen tendencialmente a medida que crece $m$. De hecho, los gradientes pueden entenderse como residuos generalizados entre $\mathbf{y}$ y $\mathbf{\hat{y}}$ que aplican a cualquier función de pérdida.  
 
+## Gradient Boosted Trees
 
-*FALTA: EXPLICAR QUE GRADIENTE SE PUEDE ENTENDER COMO RESIDUO y por eso va mejorando la predicción*
+*incluir características de los árboles en la optimización -- ver Chen y Elements*
+
+## Extensiones
+
+### Regularización
+
+### Subsampling
+
+## Hiperparámetros
+
+Dada una función de pérdida podemos definir los siguientes hiperparámetros de Gradient Boosted Trees hasta el momento:
+
+- Número de iteraciones $M$
+
+- Tasa de aprendizaje $\eta$
+
+- """Tamaño""" de los árboles $XXX$
+
+- """Regularización"""
+
+- """Subsampling"""
+
 
 ## Implementaciones
+
 
 ### XGBoost
 
@@ -55,6 +83,7 @@ Cada estimador $h_k$ de la fórmula de predicción de boosting $\hat{y}_i = f(\m
 
 ## Referencias
 
+- https://web.stanford.edu/~hastie/ElemStatLearn/
 - https://explained.ai/gradient-boosting/
-- https://homes.cs.washington.edu/~tqchen/pdf/BoostedTree.pdf
 - http://nicolas-hug.com/blog/gradient_boosting_descent
+- https://homes.cs.washington.edu/~tqchen/pdf/BoostedTree.pdf
