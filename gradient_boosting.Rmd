@@ -2,7 +2,12 @@
 title: "Sobre Gradient Boosting y Tumbas"
 output: 
   html_document:
+    toc: true
+    toc_float: true
     theme: sandstone
+knit: (function(input, ...) {
+  rmarkdown::render(input, output_dir="docs") 
+  })
 ---
 
 <!-- TODO: generalidades de aprendizaje supervisado (ver slides) -->
