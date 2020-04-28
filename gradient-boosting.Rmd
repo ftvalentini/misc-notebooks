@@ -61,9 +61,9 @@ En lugar de actualizar las predicciones con el verdadero valor del gradiente seg
 
 Definiendo $\mathbf{r}^{(m-1)}=\frac{\partial J}{\partial \hat{y}^{(m-1)}}$ podemos redefinir la ecuación de ajuste como:
 
-$$ \hat{y}^{(m)} = \hat{y}^{(m-1)} - \eta h_{m}(\mathbf{x}) $$
+$$ \hat{y}^{(m)} = \hat{y}^{(m-1)} + \eta h_{m}(\mathbf{x}) $$
 
-donde cada estimador $h_m$ de aprende un *mapping* de ${\mathbf{x}}$ hacia $\mathbf{r}^{(m-1)}$. La magnitud de las predicciones de $h_m$ en cada iteración dependerá entonces de la magnitud de los gradientes $\mathbf{r}^{(m-1)}$ durante el entrenamiento, que decrecen tendencialmente a medida que crece $m$. De hecho, los gradientes negativos pueden entenderse como **residuos generalizados** entre $y$ y $\hat{y}$ que aplican a cualquier función de pérdida.  
+donde cada estimador $h_m$ de aprende un *mapping* de ${\mathbf{x}}$ hacia $-r^{(m-1)}$. La magnitud de las predicciones de $h_m$ en cada iteración dependerá entonces de la magnitud de los gradientes $r^{(m-1)}$ durante el entrenamiento, que decrece tendencialmente a medida que crece $m$. De hecho, los gradientes negativos $-r$ pueden entenderse como **residuos generalizados** entre $y$ y $\hat{y}$ que aplican a cualquier función de pérdida.  
 
 Este abordaje nos permite usar *boosting* con estimadores base CART y con cualquier función de pérdida diferenciable. En particular, podemos usar funciones de pérdida robustas a observaciones atípicas (como la *deviance* o *log-loss* en el contexto de clasificación, o *absolute loss* para regresión). La inducción de árboles es particularmente difícil para estas funciones de pérdida, y justamente la motivación del *gradient boosting* es superar esta dificultad.   
 <!-- en particular lo que es dificil de resolver es (10.29) de ESL -->
@@ -71,17 +71,30 @@ Este abordaje nos permite usar *boosting* con estimadores base CART y con cualqu
 Gradient Boosted Trees
 ----------------------
 
-<!-- *incluir características de los árboles en la optimización -- ver Chen y ESL 10.9* -->
+Los *Gradient Boosted Trees* usan CART como estimadores base para resolver un problema de optimización con  *gradient boosting*. Los CART particionan el espacio de los predictores $\mathbf{x}$ en $T$ regiones disjuntas $R_t$, cada una con un *score* $w_t$. Cada observación $i$ recibe una predicción para $y$ según la regla 
 
-Extensiones
------------
+$$
+\hat{y}_i = h(\mathbf{x}_i,\theta) = \sum_{t=1}^{T} w_tI(\mathbf{x}_i \in R_t)
+$$
 
-### Regularización
+Se puede definir el conjunto de parámetros a estimar durante el ajuste del modelo como $\theta = \{R_t,w_t\}_{t=1}^T$. Es decir, es necesario definir (a) qué variables usar para particionar el espacio, (b) con qué puntos de corte y (c) qué *score* asignar a cada región del espacio. En particular buscamos encontrar $\theta$ tal que se minimice la pérdida $J$ en los datos de entrenamiento. 
 
-### Subsampling
+Desde luego se trata un problema complejo que requiere recorrer muchas soluciones posibles para encontrar la óptima, sobre todo cuando el número de predictores $p$ es muy alto. La estrategia subóptima que usa CART es un algoritmo *greedy* que va particionando el espacio recursivamente usando las variables con los puntos de corte que optimizan algún criterio adecuado de pérdida --el índice Gini para problemas de clasficación o la suma de residuos al cuadrado para regresión, por ejemplo.
 
-Hiperparámetros
----------------
+En el caso de *boosting* se ajusta un CART $h_m$ en cada iteración $m$, de modo tal de corregir la predicción con $\hat{y}^{(m)} = \hat{y}^{(m-1)} + \eta h_{m}$ . Cabe recordar que al tratarse de *gradient boosting*, el mapping de cada observación $i$ con el score de cada hoja no se hace directamente con base en los predictores $\mathbf{x}_i$ sino con los residuos generalizados $-r_i$.
+
+<!-- revisar algoritmo 10.3 parte (c) en ESL -- en cada región se encuentra w que minimiza la misma función de pérdida general -- comparar con XGB   -->
+
+
+<!-- Extensiones -->
+<!-- ----------- -->
+
+<!-- ### Regularización -->
+
+<!-- ### Subsampling -->
+
+<!-- Hiperparámetros -->
+<!-- --------------- -->
 
 <!-- Dada una función de pérdida podemos definir los siguientes hiperparámetros de Gradient Boosted Trees hasta el momento: -->
 
@@ -96,13 +109,16 @@ Hiperparámetros
 <!-- - """Subsampling""" -->
 
 
-Implementaciones
-----------------
+<!-- Implementaciones -->
+<!-- ---------------- -->
 
-### XGBoost
+<!-- ### gbm? -->
 
 
-### LightGBM
+<!-- ### XGBoost -->
+
+
+<!-- ### LightGBM -->
 
 Referencias
 -----------

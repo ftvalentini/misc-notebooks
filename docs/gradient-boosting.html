@@ -1553,41 +1553,38 @@ div.tocify {
 <p>Este problema se puede resolver de la siguiente manera:</p>
 <p>En lugar de actualizar las predicciones con el verdadero valor del gradiente según las datos de entrenamiento, se puede entrenar un modelo en cada iteración que estime esta dirección. Estos modelos son los estimadores base <span class="math inline">\(h_m\)</span> de <em>boosting</em>.</p>
 <p>Definiendo <span class="math inline">\(\mathbf{r}^{(m-1)}=\frac{\partial J}{\partial \hat{y}^{(m-1)}}\)</span> podemos redefinir la ecuación de ajuste como:</p>
-<p><span class="math display">\[ \hat{y}^{(m)} = \hat{y}^{(m-1)} - \eta h_{m}(\mathbf{x}) \]</span></p>
-<p>donde cada estimador <span class="math inline">\(h_m\)</span> de aprende un <em>mapping</em> de <span class="math inline">\({\mathbf{x}}\)</span> hacia <span class="math inline">\(\mathbf{r}^{(m-1)}\)</span>. La magnitud de las predicciones de <span class="math inline">\(h_m\)</span> en cada iteración dependerá entonces de la magnitud de los gradientes <span class="math inline">\(\mathbf{r}^{(m-1)}\)</span> durante el entrenamiento, que decrecen tendencialmente a medida que crece <span class="math inline">\(m\)</span>. De hecho, los gradientes negativos pueden entenderse como <strong>residuos generalizados</strong> entre <span class="math inline">\(y\)</span> y <span class="math inline">\(\hat{y}\)</span> que aplican a cualquier función de pérdida.</p>
+<p><span class="math display">\[ \hat{y}^{(m)} = \hat{y}^{(m-1)} + \eta h_{m}(\mathbf{x}) \]</span></p>
+<p>donde cada estimador <span class="math inline">\(h_m\)</span> de aprende un <em>mapping</em> de <span class="math inline">\({\mathbf{x}}\)</span> hacia <span class="math inline">\(-r^{(m-1)}\)</span>. La magnitud de las predicciones de <span class="math inline">\(h_m\)</span> en cada iteración dependerá entonces de la magnitud de los gradientes <span class="math inline">\(r^{(m-1)}\)</span> durante el entrenamiento, que decrece tendencialmente a medida que crece <span class="math inline">\(m\)</span>. De hecho, los gradientes negativos <span class="math inline">\(-r\)</span> pueden entenderse como <strong>residuos generalizados</strong> entre <span class="math inline">\(y\)</span> y <span class="math inline">\(\hat{y}\)</span> que aplican a cualquier función de pérdida.</p>
 <p>Este abordaje nos permite usar <em>boosting</em> con estimadores base CART y con cualquier función de pérdida diferenciable. En particular, podemos usar funciones de pérdida robustas a observaciones atípicas (como la <em>deviance</em> o <em>log-loss</em> en el contexto de clasificación, o <em>absolute loss</em> para regresión). La inducción de árboles es particularmente difícil para estas funciones de pérdida, y justamente la motivación del <em>gradient boosting</em> es superar esta dificultad.<br />
 <!-- en particular lo que es dificil de resolver es (10.29) de ESL --></p>
 </div>
 <div id="gradient-boosted-trees" class="section level2">
 <h2>Gradient Boosted Trees</h2>
-<!-- *incluir características de los árboles en la optimización -- ver Chen y ESL 10.9* -->
-</div>
-<div id="extensiones" class="section level2">
-<h2>Extensiones</h2>
-<div id="regularización" class="section level3">
-<h3>Regularización</h3>
-</div>
-<div id="subsampling" class="section level3">
-<h3>Subsampling</h3>
-</div>
-</div>
-<div id="hiperparámetros" class="section level2">
-<h2>Hiperparámetros</h2>
+<p>Los <em>Gradient Boosted Trees</em> usan CART como estimadores base para resolver un problema de optimización con <em>gradient boosting</em>. Los CART particionan el espacio de los predictores <span class="math inline">\(\mathbf{x}\)</span> en <span class="math inline">\(T\)</span> regiones disjuntas <span class="math inline">\(R_t\)</span>, cada una con un <em>score</em> <span class="math inline">\(w_t\)</span>. Cada observación <span class="math inline">\(i\)</span> recibe una predicción para <span class="math inline">\(y\)</span> según la regla</p>
+<p><span class="math display">\[
+\hat{y}_i = h(\mathbf{x}_i,\theta) = \sum_{t=1}^{T} w_tI(\mathbf{x}_i \in R_t)
+\]</span></p>
+<p>Se puede definir el conjunto de parámetros a estimar durante el ajuste del modelo como <span class="math inline">\(\theta = \{R_t,w_t\}_{t=1}^T\)</span>. Es decir, es necesario definir (a) qué variables usar para particionar el espacio, (b) con qué puntos de corte y (c) qué <em>score</em> asignar a cada región del espacio. En particular buscamos encontrar <span class="math inline">\(\theta\)</span> tal que se minimice la pérdida <span class="math inline">\(J\)</span> en los datos de entrenamiento.</p>
+<p>Desde luego se trata un problema complejo que requiere recorrer muchas soluciones posibles para encontrar la óptima, sobre todo cuando el número de predictores <span class="math inline">\(p\)</span> es muy alto. La estrategia subóptima que usa CART es un algoritmo <em>greedy</em> que va particionando el espacio recursivamente usando las variables con los puntos de corte que optimizan algún criterio adecuado de pérdida –el índice Gini para problemas de clasficación o la suma de residuos al cuadrado para regresión, por ejemplo.</p>
+<p>En el caso de <em>boosting</em> se ajusta un CART <span class="math inline">\(h_m\)</span> en cada iteración <span class="math inline">\(m\)</span>, de modo tal de corregir la predicción con <span class="math inline">\(\hat{y}^{(m)} = \hat{y}^{(m-1)} + \eta h_{m}\)</span> . Cabe recordar que al tratarse de <em>gradient boosting</em>, el mapping de cada observación <span class="math inline">\(i\)</span> con el score de cada hoja no se hace directamente con base en los predictores <span class="math inline">\(\mathbf{x}_i\)</span> sino con los residuos generalizados <span class="math inline">\(-r_i\)</span>.</p>
+<!-- revisar algoritmo 10.3 parte (c) en ESL -- en cada región se encuentra w que minimiza la misma función de pérdida general -- comparar con XGB   -->
+<!-- Extensiones -->
+<!-- ----------- -->
+<!-- ### Regularización -->
+<!-- ### Subsampling -->
+<!-- Hiperparámetros -->
+<!-- --------------- -->
 <!-- Dada una función de pérdida podemos definir los siguientes hiperparámetros de Gradient Boosted Trees hasta el momento: -->
 <!-- - Número de iteraciones $M$ -->
 <!-- - Tasa de aprendizaje $\eta$ -->
 <!-- - """Tamaño""" de los árboles $XXX$ -->
 <!-- - """Regularización""" -->
 <!-- - """Subsampling""" -->
-</div>
-<div id="implementaciones" class="section level2">
-<h2>Implementaciones</h2>
-<div id="xgboost" class="section level3">
-<h3>XGBoost</h3>
-</div>
-<div id="lightgbm" class="section level3">
-<h3>LightGBM</h3>
-</div>
+<!-- Implementaciones -->
+<!-- ---------------- -->
+<!-- ### gbm? -->
+<!-- ### XGBoost -->
+<!-- ### LightGBM -->
 </div>
 <div id="referencias" class="section level2">
 <h2>Referencias</h2>
