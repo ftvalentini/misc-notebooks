@@ -18,21 +18,21 @@ knit: (function(input, ...) {
 Boosting
 --------
 
-Las técnicas de ensamble estiman el target $y$ con una suma de $M$ estimadores base $h$ que dependen de $\mathbf{x} \in \mathbb{R}^p$ tal que para cada observación $i$:
+Las técnicas de ensamble estiman el target $y$ con una suma de $M$ estimadores base $b$ que dependen de $\mathbf{x} \in \mathbb{R}^p$ tal que para cada observación $i$:
 
-$$\hat{y}_i = f(\mathbf{x}_i) = \sum_{m=1}^{M} h_m(\mathbf{x}_i)$$
+$$\hat{y}_i = f(\mathbf{x}_i) = \sum_{m=1}^{M} b_m(\mathbf{x}_i)$$
 
-En **boosting** en particular, los modelos $h_m$ son modelos "débiles" (**weak learners**) que se entrenan secuencialmente con versiones continuamente alteradas de los datos, de modo que la predicción general vaya mejorando lentamente en áreas donde no ajusta bien. Los modelos son débiles en el sentido en que son simples y reducen la pérdida $J$ en una magnitud levemente por encima de lo que lo haría una estimación al azar. Es necesario que sean poco complejos para evitar el sobreajuste.
+En **boosting** en particular, los modelos $b_m$ son modelos "débiles" (**weak learners**) que se entrenan secuencialmente con versiones continuamente alteradas de los datos, de modo que la predicción general vaya mejorando lentamente en áreas donde no ajusta bien. Los modelos son débiles en el sentido en que son simples y reducen la pérdida $J$ en una magnitud levemente por encima de lo que lo haría una estimación al azar. Es necesario que sean poco complejos para evitar el sobreajuste.
 
 Visto de otra forma, *boosting* resuelve el problema de optimización general
 
-$$\min J(y,\hat{y}) = J(y,\sum_{m=1}^{M} h_m(\mathbf{x}_i))$$
+$$\min J(y,\hat{y}) = J(y,\sum_{m=1}^{M} b_m(\mathbf{x}_i))$$
 
 mediante una simplificación: en iteración $m$ se resuelve el problema
 
-$$\min J(y,h_m(\mathbf{x}))$$
+$$\min J(y,b_m(\mathbf{x}))$$
 
-Es decir que en cada iteración se ajusta el estimador base $h_m$ y se agrega a la estimación general $f(\mathbf{x})$ tomando como dadas las estimaciones anteriores --los $h_m$ no se modifican una vez que se pasa a las iteraciones subsiguientes. Esta solución se conoce como **forward stagewise additive modeling**.
+Es decir que en cada iteración se ajusta el estimador base $b_m$ y se agrega a la estimación general $f(\mathbf{x})$ tomando como dadas las estimaciones anteriores --los $b_m$ no se modifican una vez que se pasa a las iteraciones subsiguientes. Esta solución se conoce como **forward stagewise additive modeling**.
 
 Gradient Boosting
 -----------------
@@ -57,13 +57,13 @@ Sin embargo esta forma de descender por el gradiente no devuelve ninguna forma f
 
 Este problema se puede resolver de la siguiente manera:
 
-En lugar de actualizar las predicciones con el verdadero valor del gradiente según las datos de entrenamiento, se puede entrenar un modelo en cada iteración que estime esta dirección. Estos modelos son los estimadores base $h_m$ de *boosting*. 
+En lugar de actualizar las predicciones con el verdadero valor del gradiente según las datos de entrenamiento, se puede entrenar un modelo en cada iteración que estime esta dirección. Estos modelos son los estimadores base $b_m$ de *boosting*. 
 
 Definiendo $\mathbf{r}^{(m-1)}=\frac{\partial J}{\partial \hat{y}^{(m-1)}}$ podemos redefinir la ecuación de ajuste como:
 
 $$ \hat{y}^{(m)} = \hat{y}^{(m-1)} + \eta h_{m}(\mathbf{x}) $$
 
-donde cada estimador $h_m$ de aprende un *mapping* de ${\mathbf{x}}$ hacia $-r^{(m-1)}$. La magnitud de las predicciones de $h_m$ en cada iteración dependerá entonces de la magnitud de los gradientes $r^{(m-1)}$ durante el entrenamiento, que decrece tendencialmente a medida que crece $m$. De hecho, los gradientes negativos $-r$ pueden entenderse como **residuos generalizados** entre $y$ y $\hat{y}$ que aplican a cualquier función de pérdida.  
+donde cada estimador $b_m$ de aprende un *mapping* de ${\mathbf{x}}$ hacia $-r^{(m-1)}$. La magnitud de las predicciones de $b_m$ en cada iteración dependerá entonces de la magnitud de los gradientes $r^{(m-1)}$ durante el entrenamiento, que decrece tendencialmente a medida que crece $m$. De hecho, los gradientes negativos $-r$ pueden entenderse como **residuos generalizados** entre $y$ y $\hat{y}$ que aplican a cualquier función de pérdida.  
 
 Este abordaje nos permite usar *boosting* con estimadores base CART y con cualquier función de pérdida diferenciable. En particular, podemos usar funciones de pérdida robustas a observaciones atípicas (como la *deviance* o *log-loss* en el contexto de clasificación, o *absolute loss* para regresión). La inducción de árboles es particularmente difícil para estas funciones de pérdida, y justamente la motivación del *gradient boosting* es superar esta dificultad.   
 <!-- en particular lo que es dificil de resolver es (10.29) de ESL -->
@@ -81,9 +81,12 @@ Se puede definir el conjunto de parámetros a estimar durante el ajuste del mode
 
 Desde luego se trata un problema complejo que requiere recorrer muchas soluciones posibles para encontrar la óptima, sobre todo cuando el número de predictores $p$ es muy alto. La estrategia subóptima que usa CART es un algoritmo *greedy* que va particionando el espacio recursivamente usando las variables con los puntos de corte que optimizan algún criterio adecuado de pérdida --el índice Gini para problemas de clasficación o la suma de residuos al cuadrado para regresión, por ejemplo.
 
-En el caso de *boosting* se ajusta un CART $h_m$ en cada iteración $m$, de modo tal de corregir la predicción con $\hat{y}^{(m)} = \hat{y}^{(m-1)} + \eta h_{m}$ . Cabe recordar que al tratarse de *gradient boosting*, el mapping de cada observación $i$ con el score de cada hoja no se hace directamente con base en los predictores $\mathbf{x}_i$ sino con los residuos generalizados $-r_i$.
+En el caso de *boosting* se ajusta un CART $b_m$ en cada iteración $m$, de modo tal de corregir la predicción con $\hat{y}^{(m)} = \hat{y}^{(m-1)} + \eta h_{m}$ . Cabe recordar que al tratarse de *gradient boosting*, el mapping de cada observación $i$ con el score de cada hoja no se hace directamente con base en los predictores $\mathbf{x}_i$ sino con los residuos generalizados $-r_i$.
 
-<!-- revisar algoritmo 10.3 parte (c) en ESL -- en cada región se encuentra w que minimiza la misma función de pérdida general -- comparar con XGB   -->
+<!-- TODO: -->
+<!-- 1. entender optimizacion de w: revisar algoritmo 10.3 parte (c) en ESL -- en cada región se encuentra w que minimiza la misma función de pérdida general -- comparar con XGB   -->
+<!-- 2. ver si se puede incorporar numero de leaves (T) como param separado -->
+<!-- 3. explicar en XGB que usar 2nd order (Newton) es una ventaja (+precision?) -->
 
 
 <!-- Extensiones -->
