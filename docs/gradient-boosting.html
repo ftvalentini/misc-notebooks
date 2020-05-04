@@ -1530,14 +1530,15 @@ div.tocify {
 <!-- Función de pérdida $J(y,\hat{y})$ -->
 <div id="boosting" class="section level2">
 <h2>Boosting</h2>
-<p>Las técnicas de ensamble estiman el target <span class="math inline">\(y\)</span> con una suma de <span class="math inline">\(M\)</span> estimadores base <span class="math inline">\(h\)</span> que dependen de <span class="math inline">\(\mathbf{x} \in \mathbb{R}^p\)</span> tal que para cada observación <span class="math inline">\(i\)</span>:</p>
-<p><span class="math display">\[\hat{y}_i = f(\mathbf{x}_i) = \sum_{m=1}^{M} h_m(\mathbf{x}_i)\]</span></p>
-<p>En <strong>boosting</strong> en particular, los modelos <span class="math inline">\(h_m\)</span> son modelos “débiles” (<strong>weak learners</strong>) que se entrenan secuencialmente con versiones continuamente alteradas de los datos, de modo que la predicción general vaya mejorando lentamente en áreas donde no ajusta bien. Los modelos son débiles en el sentido en que son simples y reducen la pérdida <span class="math inline">\(J\)</span> en una magnitud levemente por encima de lo que lo haría una estimación al azar. Es necesario que sean poco complejos para evitar el sobreajuste.</p>
-<p>Visto de otra forma, <em>boosting</em> resuelve el problema de optimización general</p>
-<p><span class="math display">\[\min J(y,\hat{y}) = J(y,\sum_{m=1}^{M} h_m(\mathbf{x}_i))\]</span></p>
-<p>mediante una simplificación: en iteración <span class="math inline">\(m\)</span> se resuelve el problema</p>
-<p><span class="math display">\[\min J(y,h_m(\mathbf{x}))\]</span></p>
-<p>Es decir que en cada iteración se ajusta el estimador base <span class="math inline">\(h_m\)</span> y se agrega a la estimación general <span class="math inline">\(f(\mathbf{x})\)</span> tomando como dadas las estimaciones anteriores –los <span class="math inline">\(h_m\)</span> no se modifican una vez que se pasa a las iteraciones subsiguientes. Esta solución se conoce como <strong>forward stagewise additive modeling</strong>.</p>
+<p>Las técnicas de ensamble estiman el target <span class="math inline">\(y\)</span> con una suma de <span class="math inline">\(M\)</span> estimadores base <span class="math inline">\(b\)</span> que dependen de <span class="math inline">\(\mathbf{x} \in \mathbb{R}^p\)</span> tal que para cada observación <span class="math inline">\(i\)</span>:</p>
+<p><span class="math display">\[\hat{y}_i = f(\mathbf{x}_i) = \sum_{m=1}^{M} b_m(\mathbf{x}_i)\]</span></p>
+<p>En <strong>boosting</strong> en particular, los modelos <span class="math inline">\(b_m\)</span> son modelos “débiles” (<strong>weak learners</strong>) que se entrenan secuencialmente con versiones continuamente alteradas de los datos, de modo que la predicción general vaya mejorando lentamente en áreas donde no ajusta bien. Los modelos son débiles en el sentido en que son simples y reducen la pérdida <span class="math inline">\(J\)</span> en una magnitud levemente por encima de lo que lo haría una estimación al azar. Es necesario que sean poco complejos para evitar el sobreajuste.</p>
+<p>El problema de optimización general</p>
+<p><span class="math display">\[\min J(y,\hat{y}) = J(y,\sum_{m=1}^{M} b_m(\mathbf{x}_i))\]</span></p>
+<p>se resuelve en <em>boosting</em> mediante una simplificación: en cada iteración <span class="math inline">\(m\)</span> se resuelve el problema más simple</p>
+<p><span class="math display">\[\min J(y,b_m(\mathbf{x}))\]</span></p>
+<p>Es decir que en cada iteración se ajusta el estimador base <span class="math inline">\(b_m\)</span> y se agrega a la estimación general <span class="math inline">\(f(\mathbf{x})\)</span> tomando como dadas las estimaciones anteriores –los <span class="math inline">\(b_m\)</span> no se modifican una vez que se pasa a las iteraciones subsiguientes. Esta solución se conoce como <strong>forward stagewise additive modeling</strong>.</p>
+<p>Si la primera ronda de boosting comienza en <span class="math inline">\(m=1\)</span>, decimos entonces que <span class="math inline">\(f\)</span> se inicializa con un valor constante <span class="math inline">\(b_0\)</span> tal que <span class="math inline">\(b_0 = \arg\min_b J(y,b)\)</span> –es decir, se usa la constante que minimiza la pérdida en las instancias de entrenamiento (por ejemplo, la media de <span class="math inline">\(y\)</span> cuando la función de pérdida es el error cuadrático medio).</p>
 </div>
 <div id="gradient-boosting" class="section level2">
 <h2>Gradient Boosting</h2>
@@ -1551,40 +1552,51 @@ div.tocify {
 <p>donde <span class="math inline">\(\hat{y}\)</span> se iniciliza en valores al azar.</p>
 <p>Sin embargo esta forma de descender por el gradiente no devuelve ninguna forma funcional que se pueda aplicar a nuevas observaciones. Solo nos permite obtener predicciones <span class="math inline">\(\hat{y}_i\)</span> para las mismas observaciones <span class="math inline">\(i\)</span> con las que se realiza la optimización. De hecho, lo único que estamos haciendo es corregir <span class="math inline">\(\hat{y}\)</span> iterativamente para que se acerque a <span class="math inline">\(y\)</span>, haciendo tender la pérdida a 0 en los datos de entrenamiento.</p>
 <p>Este problema se puede resolver de la siguiente manera:</p>
-<p>En lugar de actualizar las predicciones con el verdadero valor del gradiente según las datos de entrenamiento, se puede entrenar un modelo en cada iteración que estime esta dirección. Estos modelos son los estimadores base <span class="math inline">\(h_m\)</span> de <em>boosting</em>.</p>
-<p>Definiendo <span class="math inline">\(\mathbf{r}^{(m-1)}=\frac{\partial J}{\partial \hat{y}^{(m-1)}}\)</span> podemos redefinir la ecuación de ajuste como:</p>
-<p><span class="math display">\[ \hat{y}^{(m)} = \hat{y}^{(m-1)} + \eta h_{m}(\mathbf{x}) \]</span></p>
-<p>donde cada estimador <span class="math inline">\(h_m\)</span> de aprende un <em>mapping</em> de <span class="math inline">\({\mathbf{x}}\)</span> hacia <span class="math inline">\(-r^{(m-1)}\)</span>. La magnitud de las predicciones de <span class="math inline">\(h_m\)</span> en cada iteración dependerá entonces de la magnitud de los gradientes <span class="math inline">\(r^{(m-1)}\)</span> durante el entrenamiento, que decrece tendencialmente a medida que crece <span class="math inline">\(m\)</span>. De hecho, los gradientes negativos <span class="math inline">\(-r\)</span> pueden entenderse como <strong>residuos generalizados</strong> entre <span class="math inline">\(y\)</span> y <span class="math inline">\(\hat{y}\)</span> que aplican a cualquier función de pérdida.</p>
+<p>En lugar de actualizar las predicciones con el verdadero valor del gradiente según las datos de entrenamiento, se puede entrenar un modelo en cada iteración que estime esta dirección. Estos modelos son los estimadores base <span class="math inline">\(b_m\)</span> de <em>boosting</em>.</p>
+<p>Definiendo <span class="math inline">\(r^{(m-1)}=-\frac{\partial J}{\partial \hat{y}^{(m-1)}}\)</span> podemos redefinir la ecuación de ajuste como:</p>
+<p><span class="math display">\[ \hat{y}^{(m)} = \hat{y}^{(m-1)} + \eta b_m(\mathbf{x}) \]</span></p>
+<p>donde cada estimador <span class="math inline">\(b_m\)</span> de aprende un <em>mapping</em> de <span class="math inline">\({\mathbf{x}}\)</span> hacia <span class="math inline">\(r^{(m-1)}\)</span>. La magnitud de las predicciones de <span class="math inline">\(b_m\)</span> en cada iteración dependerá entonces de la magnitud de los gradientes <span class="math inline">\(r^{(m-1)}\)</span> durante el entrenamiento, que decrece tendencialmente a medida que crece <span class="math inline">\(m\)</span>. De hecho, los gradientes negativos <span class="math inline">\(r\)</span> pueden entenderse como <strong>residuos generalizados</strong> entre <span class="math inline">\(y\)</span> y <span class="math inline">\(\hat{y}\)</span> que aplican a cualquier función de pérdida.</p>
 <p>Este abordaje nos permite usar <em>boosting</em> con estimadores base CART y con cualquier función de pérdida diferenciable. En particular, podemos usar funciones de pérdida robustas a observaciones atípicas (como la <em>deviance</em> o <em>log-loss</em> en el contexto de clasificación, o <em>absolute loss</em> para regresión). La inducción de árboles es particularmente difícil para estas funciones de pérdida, y justamente la motivación del <em>gradient boosting</em> es superar esta dificultad.<br />
 <!-- en particular lo que es dificil de resolver es (10.29) de ESL --></p>
 </div>
 <div id="gradient-boosted-trees" class="section level2">
 <h2>Gradient Boosted Trees</h2>
-<p>Los <em>Gradient Boosted Trees</em> usan CART como estimadores base para resolver un problema de optimización con <em>gradient boosting</em>. Los CART particionan el espacio de los predictores <span class="math inline">\(\mathbf{x}\)</span> en <span class="math inline">\(T\)</span> regiones disjuntas <span class="math inline">\(R_t\)</span>, cada una con un <em>score</em> <span class="math inline">\(w_t\)</span>. Cada observación <span class="math inline">\(i\)</span> recibe una predicción para <span class="math inline">\(y\)</span> según la regla</p>
+<div id="cart" class="section level3">
+<h3>CART</h3>
+<p>Los <em>Gradient Boosted Trees</em> usan CART como estimadores base para resolver un problema de optimización con <em>gradient boosting</em>. Los CART particionan el espacio de los predictores <span class="math inline">\(\mathbf{x}\)</span> en <span class="math inline">\(T\)</span> regiones disjuntas <span class="math inline">\(R_t\)</span> –las hojas–, y le asignan a cada una un <em>score</em> <span class="math inline">\(w_t\)</span>. De esta manera se genera una predicción para <span class="math inline">\(y\)</span> según la regla</p>
 <p><span class="math display">\[
-\hat{y}_i = h(\mathbf{x}_i,\theta) = \sum_{t=1}^{T} w_tI(\mathbf{x}_i \in R_t)
+\hat{y} = tree(\mathbf{x},\theta) = \sum_{t=1}^{T} w_tI(\mathbf{x} \in R_t)
 \]</span></p>
 <p>Se puede definir el conjunto de parámetros a estimar durante el ajuste del modelo como <span class="math inline">\(\theta = \{R_t,w_t\}_{t=1}^T\)</span>. Es decir, es necesario definir (a) qué variables usar para particionar el espacio, (b) con qué puntos de corte y (c) qué <em>score</em> asignar a cada región del espacio. En particular buscamos encontrar <span class="math inline">\(\theta\)</span> tal que se minimice la pérdida <span class="math inline">\(J\)</span> en los datos de entrenamiento.</p>
 <p>Desde luego se trata un problema complejo que requiere recorrer muchas soluciones posibles para encontrar la óptima, sobre todo cuando el número de predictores <span class="math inline">\(p\)</span> es muy alto. La estrategia subóptima que usa CART es un algoritmo <em>greedy</em> que va particionando el espacio recursivamente usando las variables con los puntos de corte que optimizan algún criterio adecuado de pérdida –el índice Gini para problemas de clasficación o la suma de residuos al cuadrado para regresión, por ejemplo.</p>
-<p>En el caso de <em>boosting</em> se ajusta un CART <span class="math inline">\(h_m\)</span> en cada iteración <span class="math inline">\(m\)</span>, de modo tal de corregir la predicción con <span class="math inline">\(\hat{y}^{(m)} = \hat{y}^{(m-1)} + \eta h_{m}\)</span> . Cabe recordar que al tratarse de <em>gradient boosting</em>, el mapping de cada observación <span class="math inline">\(i\)</span> con el score de cada hoja no se hace directamente con base en los predictores <span class="math inline">\(\mathbf{x}_i\)</span> sino con los residuos generalizados <span class="math inline">\(-r_i\)</span>.</p>
-<!-- revisar algoritmo 10.3 parte (c) en ESL -- en cada región se encuentra w que minimiza la misma función de pérdida general -- comparar con XGB   -->
-<!-- Extensiones -->
-<!-- ----------- -->
-<!-- ### Regularización -->
-<!-- ### Subsampling -->
-<!-- Hiperparámetros -->
-<!-- --------------- -->
-<!-- Dada una función de pérdida podemos definir los siguientes hiperparámetros de Gradient Boosted Trees hasta el momento: -->
+<p>Dadas las regiones <span class="math inline">\(R_t\)</span>, en cada una se computa un <em>score</em> constante <span class="math inline">\(w_t\)</span> según</p>
+<p><span class="math display">\[ 
+w_t = \arg\min_w \sum_{\mathbf{x} \in R_t} J(y,w)
+\]</span></p>
+<p>de modo tal de minimizar la función de pérdida acorde al problema para las observaciones que pertenecen a la región.</p>
+</div>
+<div id="cart-gradient-boosting" class="section level3">
+<h3>CART + Gradient Boosting</h3>
+<p>En el contexto de <em>boosting</em> se ajustan <span class="math inline">\(M\)</span> CARTs <span class="math inline">\(b_m = tree_m\)</span>, que al sumarse dan lugar a la predicción final para cada observación <span class="math inline">\(i\)</span>:</p>
+<p><span class="math display">\[\hat{y}_i = f(\mathbf{x}_i) = \sum_{m=1}^{M} tree_m(\mathbf{x}_i, \theta_m)\]</span></p>
+<p>Al tratarse de <em>gradient boosting</em>, los parámetros de cada <span class="math inline">\(tree_m\)</span> se ajustan para predecir los residuos generalizados <span class="math inline">\(r\)</span> de la iteración anterior. Una vez ajustado <span class="math inline">\(tree_m\)</span>, la predicción <span class="math inline">\(\hat{y}\)</span> se corrige según la regla <span class="math inline">\(\hat{y}^{(m)} = \hat{y}^{(m-1)} + \eta tree_{m}\)</span>.</p>
+<!-- TODO: -->
+<!-- 2. ver si se puede incorporar numero de leaves (T) como param separado -->
+<!-- entender algoritmo 10.3 parte (c) en ESL -- en cada región se encuentra w que minimiza la misma función de pérdida general -- por qué se incluyen f_{m-1} en la minimizacion) --comparar con XGB   -->
+<!-- SEGUIR DESDE ACÁ -->
+<!-- (describir gbm con hiperaparametros ya mencionadas y el agregado de subsampling) -->
+<!-- Implementaciones -->
+<!-- ---------------- -->
+<!-- ### GBM -->
+<!-- GBM/MART -->
 <!-- - Número de iteraciones $M$ -->
 <!-- - Tasa de aprendizaje $\eta$ -->
 <!-- - """Tamaño""" de los árboles $XXX$ -->
-<!-- - """Regularización""" -->
-<!-- - """Subsampling""" -->
-<!-- Implementaciones -->
-<!-- ---------------- -->
-<!-- ### gbm? -->
+<!-- Subsampling (ver en ESL) -->
 <!-- ### XGBoost -->
+<!-- En XGB que usar 2nd order (Newton) es una ventaja (+precision?) -->
 <!-- ### LightGBM -->
+</div>
 </div>
 <div id="referencias" class="section level2">
 <h2>Referencias</h2>

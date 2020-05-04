@@ -24,15 +24,17 @@ $$\hat{y}_i = f(\mathbf{x}_i) = \sum_{m=1}^{M} b_m(\mathbf{x}_i)$$
 
 En **boosting** en particular, los modelos $b_m$ son modelos "débiles" (**weak learners**) que se entrenan secuencialmente con versiones continuamente alteradas de los datos, de modo que la predicción general vaya mejorando lentamente en áreas donde no ajusta bien. Los modelos son débiles en el sentido en que son simples y reducen la pérdida $J$ en una magnitud levemente por encima de lo que lo haría una estimación al azar. Es necesario que sean poco complejos para evitar el sobreajuste.
 
-Visto de otra forma, *boosting* resuelve el problema de optimización general
+El problema de optimización general
 
 $$\min J(y,\hat{y}) = J(y,\sum_{m=1}^{M} b_m(\mathbf{x}_i))$$
 
-mediante una simplificación: en iteración $m$ se resuelve el problema
+se resuelve en *boosting* mediante una simplificación: en cada iteración $m$ se resuelve el problema más simple
 
 $$\min J(y,b_m(\mathbf{x}))$$
 
 Es decir que en cada iteración se ajusta el estimador base $b_m$ y se agrega a la estimación general $f(\mathbf{x})$ tomando como dadas las estimaciones anteriores --los $b_m$ no se modifican una vez que se pasa a las iteraciones subsiguientes. Esta solución se conoce como **forward stagewise additive modeling**.
+
+Si la primera ronda de boosting comienza en $m=1$, decimos entonces que $f$ se inicializa con un valor constante $b_0$ tal que $b_0 = \arg\min_b J(y,b)$ --es decir, se usa la constante que minimiza la pérdida en las instancias de entrenamiento (por ejemplo, la media de $y$ cuando la función de pérdida es el error cuadrático medio).
 
 Gradient Boosting
 -----------------
@@ -59,11 +61,11 @@ Este problema se puede resolver de la siguiente manera:
 
 En lugar de actualizar las predicciones con el verdadero valor del gradiente según las datos de entrenamiento, se puede entrenar un modelo en cada iteración que estime esta dirección. Estos modelos son los estimadores base $b_m$ de *boosting*. 
 
-Definiendo $\mathbf{r}^{(m-1)}=\frac{\partial J}{\partial \hat{y}^{(m-1)}}$ podemos redefinir la ecuación de ajuste como:
+Definiendo $r^{(m-1)}=-\frac{\partial J}{\partial \hat{y}^{(m-1)}}$ podemos redefinir la ecuación de ajuste como:
 
-$$ \hat{y}^{(m)} = \hat{y}^{(m-1)} + \eta h_{m}(\mathbf{x}) $$
+$$ \hat{y}^{(m)} = \hat{y}^{(m-1)} + \eta b_m(\mathbf{x}) $$
 
-donde cada estimador $b_m$ de aprende un *mapping* de ${\mathbf{x}}$ hacia $-r^{(m-1)}$. La magnitud de las predicciones de $b_m$ en cada iteración dependerá entonces de la magnitud de los gradientes $r^{(m-1)}$ durante el entrenamiento, que decrece tendencialmente a medida que crece $m$. De hecho, los gradientes negativos $-r$ pueden entenderse como **residuos generalizados** entre $y$ y $\hat{y}$ que aplican a cualquier función de pérdida.  
+donde cada estimador $b_m$ de aprende un *mapping* de ${\mathbf{x}}$ hacia $r^{(m-1)}$. La magnitud de las predicciones de $b_m$ en cada iteración dependerá entonces de la magnitud de los gradientes $r^{(m-1)}$ durante el entrenamiento, que decrece tendencialmente a medida que crece $m$. De hecho, los gradientes negativos $r$ pueden entenderse como **residuos generalizados** entre $y$ y $\hat{y}$ que aplican a cualquier función de pérdida.  
 
 Este abordaje nos permite usar *boosting* con estimadores base CART y con cualquier función de pérdida diferenciable. En particular, podemos usar funciones de pérdida robustas a observaciones atípicas (como la *deviance* o *log-loss* en el contexto de clasificación, o *absolute loss* para regresión). La inducción de árboles es particularmente difícil para estas funciones de pérdida, y justamente la motivación del *gradient boosting* es superar esta dificultad.   
 <!-- en particular lo que es dificil de resolver es (10.29) de ESL -->
@@ -71,35 +73,50 @@ Este abordaje nos permite usar *boosting* con estimadores base CART y con cualqu
 Gradient Boosted Trees
 ----------------------
 
-Los *Gradient Boosted Trees* usan CART como estimadores base para resolver un problema de optimización con  *gradient boosting*. Los CART particionan el espacio de los predictores $\mathbf{x}$ en $T$ regiones disjuntas $R_t$, cada una con un *score* $w_t$. Cada observación $i$ recibe una predicción para $y$ según la regla 
+### CART
+
+Los *Gradient Boosted Trees* usan CART como estimadores base para resolver un problema de optimización con  *gradient boosting*. Los CART particionan el espacio de los predictores $\mathbf{x}$ en $T$ regiones disjuntas $R_t$ --las hojas--, y le asignan a cada una un *score* $w_t$. De esta manera se genera una predicción para $y$ según la regla 
 
 $$
-\hat{y}_i = h(\mathbf{x}_i,\theta) = \sum_{t=1}^{T} w_tI(\mathbf{x}_i \in R_t)
+\hat{y} = tree(\mathbf{x},\theta) = \sum_{t=1}^{T} w_tI(\mathbf{x} \in R_t)
 $$
 
 Se puede definir el conjunto de parámetros a estimar durante el ajuste del modelo como $\theta = \{R_t,w_t\}_{t=1}^T$. Es decir, es necesario definir (a) qué variables usar para particionar el espacio, (b) con qué puntos de corte y (c) qué *score* asignar a cada región del espacio. En particular buscamos encontrar $\theta$ tal que se minimice la pérdida $J$ en los datos de entrenamiento. 
 
 Desde luego se trata un problema complejo que requiere recorrer muchas soluciones posibles para encontrar la óptima, sobre todo cuando el número de predictores $p$ es muy alto. La estrategia subóptima que usa CART es un algoritmo *greedy* que va particionando el espacio recursivamente usando las variables con los puntos de corte que optimizan algún criterio adecuado de pérdida --el índice Gini para problemas de clasficación o la suma de residuos al cuadrado para regresión, por ejemplo.
 
-En el caso de *boosting* se ajusta un CART $b_m$ en cada iteración $m$, de modo tal de corregir la predicción con $\hat{y}^{(m)} = \hat{y}^{(m-1)} + \eta h_{m}$ . Cabe recordar que al tratarse de *gradient boosting*, el mapping de cada observación $i$ con el score de cada hoja no se hace directamente con base en los predictores $\mathbf{x}_i$ sino con los residuos generalizados $-r_i$.
+Dadas las regiones $R_t$, en cada una se computa un *score* constante $w_t$ según
+
+$$ 
+w_t = \arg\min_w \sum_{\mathbf{x} \in R_t} J(y,w)
+$$
+
+de modo tal de minimizar la función de pérdida acorde al problema para las observaciones que pertenecen a la región. 
+
+
+### CART + Gradient Boosting
+
+En el contexto de *boosting* se ajustan $M$ CARTs $b_m = tree_m$, que al sumarse dan lugar a la predicción final para cada observación $i$:
+
+$$\hat{y}_i = f(\mathbf{x}_i) = \sum_{m=1}^{M} tree_m(\mathbf{x}_i, \theta_m)$$
+
+Al tratarse de *gradient boosting*, los parámetros de cada $tree_m$ se ajustan para predecir los residuos generalizados $r$ de la iteración anterior. Una vez ajustado $tree_m$, la predicción $\hat{y}$ se corrige según la regla $\hat{y}^{(m)} = \hat{y}^{(m-1)} + \eta tree_{m}$. 
+
 
 <!-- TODO: -->
-<!-- 1. entender optimizacion de w: revisar algoritmo 10.3 parte (c) en ESL -- en cada región se encuentra w que minimiza la misma función de pérdida general -- comparar con XGB   -->
 <!-- 2. ver si se puede incorporar numero de leaves (T) como param separado -->
-<!-- 3. explicar en XGB que usar 2nd order (Newton) es una ventaja (+precision?) -->
+<!-- entender algoritmo 10.3 parte (c) en ESL -- en cada región se encuentra w que minimiza la misma función de pérdida general -- por qué se incluyen f_{m-1} en la minimizacion) --comparar con XGB   -->
 
 
-<!-- Extensiones -->
-<!-- ----------- -->
+<!-- SEGUIR DESDE ACÁ -->
+<!-- (describir gbm con hiperaparametros ya mencionadas y el agregado de subsampling) -->
 
-<!-- ### Regularización -->
+<!-- Implementaciones -->
+<!-- ---------------- -->
 
-<!-- ### Subsampling -->
+<!-- ### GBM -->
 
-<!-- Hiperparámetros -->
-<!-- --------------- -->
-
-<!-- Dada una función de pérdida podemos definir los siguientes hiperparámetros de Gradient Boosted Trees hasta el momento: -->
+<!-- GBM/MART -->
 
 <!-- - Número de iteraciones $M$ -->
 
@@ -107,19 +124,12 @@ En el caso de *boosting* se ajusta un CART $b_m$ en cada iteración $m$, de modo
 
 <!-- - """Tamaño""" de los árboles $XXX$ -->
 
-<!-- - """Regularización""" -->
-
-<!-- - """Subsampling""" -->
-
-
-<!-- Implementaciones -->
-<!-- ---------------- -->
-
-<!-- ### gbm? -->
+<!-- Subsampling (ver en ESL) -->
 
 
 <!-- ### XGBoost -->
 
+<!-- En XGB que usar 2nd order (Newton) es una ventaja (+precision?) -->
 
 <!-- ### LightGBM -->
 
