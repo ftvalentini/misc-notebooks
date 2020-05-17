@@ -1,0 +1,28 @@
+---
+title: "Apuntes de matemática"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: sandstone
+knit: (function(input, ...) {
+  rmarkdown::render(input, output_dir="docs") 
+  })
+---
+
+Álgebra
+-------
+
+### Cambio de base
+
+Dada una base canónica $B = [\mathbf{b_1},\mathbf{b_2},..,\mathbf{b_n}]$ y otra base $C = [\mathbf{c_1},\mathbf{c_2},..,\mathbf{c_n}]$ expresada en la base canónica, podemos "traducir" un vector $\mathbf{v_b}$ expresado en $B$ a un vector $\mathbf{v_c}$ expresado en $C$ mediante
+
+$$ \mathbf{v_c} = C^{-1}\mathbf{v_b}  $$
+mientras que podemos hacer la operación inversa con
+
+$$ \mathbf{v_b} = C\mathbf{v_c} $$
+
+Referencia: [3Blue1Brown](https://www.youtube.com/watch?v=P2LTAUO1TdA)
+
+
+<!-- TODO: scalar projection -- sector projection -->
