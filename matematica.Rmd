@@ -24,5 +24,19 @@ $$ \mathbf{v_b} = C\mathbf{v_c} $$
 
 Referencia: [3Blue1Brown](https://www.youtube.com/watch?v=P2LTAUO1TdA)
 
+### Proyecciones
 
-<!-- TODO: scalar projection -- sector projection -->
+- La **proyección escalar** $\alpha$ de un vector $\mathbf{a}$ sobre un vector $\mathbf{b}$ se computa como 
+
+$$ \alpha = \frac{\mathbf{a} \cdot \mathbf{b}}{ {\lVert}\mathbf{b}{\rVert} }  $$
+
+- La **proyección vectorial** $\mathbf{p}$ de un vector $\mathbf{a}$ sobre un vector $\mathbf{b}$ se computa como 
+
+$$ \mathbf{p} = \frac{\mathbf{a} \cdot \mathbf{b}}{ {\lVert}\mathbf{b}{\rVert}^2 } \mathbf{b} = \frac{\mathbf{a} \cdot \mathbf{b}}{ {\lVert}\mathbf{b}{\rVert} } \frac{\mathbf{b}}{ {\lVert}\mathbf{b}{\rVert} }  $$
+
+$\alpha$ es un escalar que representa la longitud de la proyección vectorial de $\mathbf{a}$ sobre $\mathbf{b}$ -- si estos vectores apuntan "en la misma dirección" (el ángulo entre ellos es menor a 90º) $\alpha$ es un número positivo, si apuntan "en direcciones opuestas" (ángulo entre 90º y 180º) es un número negativo y si son perpendiculares (ángulo igual a 90º) es igual a cero.  
+
+$\mathbf{b} / \lVert\mathbf{b}\rVert$ es el vector unitario de $\mathbf{b}$, es decir, normalizado para que tenga longitud igual a uno.
+
+La proyección vectorial de $\mathbf{a}$ sobre $\mathbf{b}$ es un vector con la misma dirección que $\mathbf{b}$ y con una magnitud dada por $\alpha$.
+
