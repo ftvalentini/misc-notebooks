@@ -40,3 +40,15 @@ $\mathbf{b} / \lVert\mathbf{b}\rVert$ es el vector unitario de $\mathbf{b}$, es 
 
 La proyección vectorial de $\mathbf{a}$ sobre $\mathbf{b}$ es un vector con la misma dirección que $\mathbf{b}$ y con una magnitud dada por $\alpha$.
 
+Referencia: [Wikipedia](https://en.wikipedia.org/wiki/Vector_projection)
+
+### Rotación
+
+En un espacio de dos dimensiones, una matriz de rotación $R$ que hace un cambio desde la base canónica hacia una base rotada en un ángulo $\theta$ en el sentido contrario a las agujas del reloj está dada por
+
+$$ R(\theta) = \begin{bmatrix} 
+\cos\theta & -\sin\theta \\ 
+\sin\theta & \cos\theta 
+\end{bmatrix} $$
+
+Fuente: [Mathematics for Machine Learning](https://mml-book.github.io/book/mml-book.pdf)
