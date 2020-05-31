@@ -1,0 +1,102 @@
+---
+title: "Jerarquización de aeropuertos con PageRank"
+date: "Junio de 2019"
+lang: es
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+knit: (function(input, ...) {
+  rmarkdown::render(input, output_dir="docs") 
+  })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=F, warning=F, message=F
+                      , fig.align='center', fig.pos='H')
+```
+
+```{r libraries}
+library(tidyverse)
+library(igraph)
+library(plotly)
+library(DT)
+```
+
+
+```{r read-data}
+prank = read.csv("data/working/pageranks.csv", stringsAsFactors=F
+                 , encoding='UTF-8')
+prank_cities = read.csv("data/working/pageranks_cities.csv", stringsAsFactors=F
+                        , encoding='UTF-8')
+edges = read.csv("data/working/edges.csv", stringsAsFactors=F)
+```
+
+
+El objetivo es jerarquizar los aeropuertos del mundo mediante [PageRank](https://en.wikipedia.org/wiki/PageRank). Aquellos aeropuertos con mayor ranking serán los que reciban más vuelos de aeropuertos que a su vez reciban relativamente muchos vuelos y así sucesivamente... De esta manera PageRank representa una medida de la importancia relativa de cada aeropuerto dentro de la red. 
+
+Descargué los vuelos diarios existentes a nivel mundial durante junio de 2014 de <https://openflights.org/data.html>. Modelé estas rutas como un multigrafo direccionado conformado por `r c(edges$source_id, edges$destination_id) %>% unique() %>% length()` vértices (aeropuertos) y `r nrow(edges)` aristas (rutas o vuelos). 
+
+Calculé el PageRank de cada aeropuerto usando [la implementación de NetworkX para Python](https://networkx.github.io/documentation/stable/reference/algorithms/link_analysis.html). Para eso convertí el multigrafo direccionado en un grafo simple direccionado y pesado, usando la cantidad de vuelos como pesos. El código está disponible [en GitHub](pagerank.py).
+
+El *damping factor* $\alpha$ es un parámetro que indica la probabilidad de que un usuario transite de un nodo a otro con el cual está conectado, de modo que $1-\alpha$ es la probabilidad de pasar de un nodo a cualquier otro nodo de la red al azar. Debido a que no se puede visitar cualquier aeropuerto al azar sin usar una ruta, fijé el *damping factor* en 1. 
+
+<!-- Los principales aeropuertos según PageRank se presentan en el Cuadro \@ref(tab:prank-top). -->
+
+### 20 principales aeropuertos según PageRank
+
+```{r prank-top,  out.width='10%'}
+tab_top = prank %>% 
+  select(name, country, pagerank, in_degree, out_degree) %>% 
+  mutate(pagerank = round(pagerank*100,3)) %>% 
+  rename(Aeropuerto=name
+         ,País=country
+         ,"PageRank (%)"=pagerank
+         ,"Grado de entrada"=in_degree
+         ,"Grado de salida"=out_degree
+         ) %>% 
+  head(20) 
+
+tab_top %>% datatable()
+```
+
+### 20 principales ciudades según PageRank
+
+También hice el ejercicio de considerar únicamente las ciudades de origen y destino como vértices de la red, haciendo caso omiso de los aeropuertos. 
+
+```{r prankcities-top, out.width='80%'}
+tabcities_top = prank_cities %>% 
+  select(city, pagerank, in_degree, out_degree) %>% 
+  mutate(pagerank = round(pagerank*100,3)) %>% 
+  rename(Ciudad=city
+         ,"PageRank (%)"=pagerank
+         ,"Grado de entrada"=in_degree
+         ,"Grado de salida"=out_degree
+         ) %>% 
+  head(20) 
+
+tabcities_top %>% datatable()
+```
+
+
+### PageRank vs. Grado de entrada
+
+Por último comparé el PageRank de cada aeropuerto/ciudad con el ranking que surgiría de mirar simplemente el grado de entrada. Como se observa, existen diferencias en el ordenamiento pero poco significativas, tanto en ciudades como aeropuertos.
+
+```{r prank-indegree}
+
+g1 = ggplot(prank, aes(x=log(pagerank), y=log(in_degree), label=name)) +
+  geom_point(alpha=0.5, position="jitter", cex=0.5) +
+  labs(x="log(PageRank)", y="log(Grado de entrada)", title="Aeropuertos") +
+  NULL
+g1 %>% ggplotly()
+
+g2 = ggplot(prank_cities, aes(x=log(pagerank), y=log(in_degree), label=city)) +
+  geom_point(alpha=0.5, position="jitter", cex=0.5) +
+  labs(x="log(PageRank)", y="log(Grado de entrada)", title="Ciudades") +
+  NULL
+g2 %>% ggplotly()
+
+```
+
