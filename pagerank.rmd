@@ -38,7 +38,7 @@ El objetivo es jerarquizar los aeropuertos del mundo mediante [PageRank](https:/
 
 Descargué los vuelos diarios existentes a nivel mundial durante junio de 2014 de <https://openflights.org/data.html>. Modelé estas rutas como un multigrafo direccionado conformado por `r c(edges$source_id, edges$destination_id) %>% unique() %>% length()` vértices (aeropuertos) y `r nrow(edges)` aristas (rutas o vuelos). 
 
-Calculé el PageRank de cada aeropuerto usando [la implementación de NetworkX para Python](https://networkx.github.io/documentation/stable/reference/algorithms/link_analysis.html). Para eso convertí el multigrafo direccionado en un grafo simple direccionado y pesado, usando la cantidad de vuelos como pesos. El código está disponible [en GitHub](pagerank.py).
+Calculé el PageRank de cada aeropuerto usando [la implementación de NetworkX para Python](https://networkx.github.io/documentation/stable/reference/algorithms/link_analysis.html). Para eso convertí el multigrafo direccionado en un grafo simple direccionado y pesado, usando la cantidad de vuelos como pesos. El código está disponible [en GitHub](https://github.com/ftvalentini/misc-notebooks/blob/master/pagerank.py).
 
 El *damping factor* $\alpha$ es un parámetro que indica la probabilidad de que un usuario transite de un nodo a otro con el cual está conectado, de modo que $1-\alpha$ es la probabilidad de pasar de un nodo a cualquier otro nodo de la red al azar. Debido a que no se puede visitar cualquier aeropuerto al azar sin usar una ruta, fijé el *damping factor* en 1. 
 
