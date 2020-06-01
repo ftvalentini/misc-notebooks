@@ -1,0 +1,95 @@
+library(tidyverse)
+library(shiny)
+library(shinythemes)
+library(glue)
+library(plotly)
+
+# param -------------------------------------------------------------------
+
+RANDOM_SEED = 25
+COMPLEXITIES = 1:20
+TESTDATA_PROPORTION = 0.2
+
+# helpers ---------------------------------------------------------------
+
+# MSE
+mse = function(a, b) sum((a - b)**2) / length(b)
+# minmax
+minmax = function(x) (x - min(x)) / (max(x) - min(x))
+# return conditional mean of a polynomic DGP with data x, coef and degree
+dgp = function(x, coef_vec, degree) {
+  betas = coef_vec
+  mat = rep(list(x), degree+1) %>%
+    map2(0:degree, function(x,y) x**y) %>%
+    bind_cols() %>%
+    as.matrix()
+  return(mat%*%betas)
+}
+
+# make random data
+make_data = function(seed, n_rows, coef_value, degree, error_size) {
+  set.seed(seed)
+  x = runif(n_rows, -100, 100)
+  betas = rep(coef_value, degree+1)
+  media = dgp(x, coef_vec=betas, degree=degree)
+  y = rnorm(n_rows, media, error_size*max(media))
+  dat = data.frame(x=x, y=y)
+  return(dat)
+}
+
+# train many models according to flexibility
+train_models = function(dat, test_idx, complexity_vec) {
+  models = complexity_vec %>%
+    map(function(f) lm(y ~ poly(x,f), data=dat[-test_idx, ]))
+  return(models)
+}
+
+# eval many fitted models according to flexibility
+eval_models = function(models, dat, test_idx) {
+  preds = models %>%
+    map(function(m) predict(m, dat[test_idx,]))
+  mses_train = models %>%
+    map_dbl(function(m) mse(dat$y[-test_idx], m$fitted.values))
+  mses_test = preds %>%
+    map_dbl(function(p) mse(dat$y[test_idx], p))
+  out = list(train=mses_train, test=mses_test)
+  return(out)
+}
+
+# plot performance by complexity
+plot_performance = function(models_results, complexity_vec) {
+  gdat = data.frame(
+    flexibility = complexity_vec
+    ,mse_train = models_results$train
+    ,mse_test = models_results$test
+  ) %>%
+    gather(metric, value, -flexibility) %>%
+    mutate(value = minmax(value))
+  g = ggplot(gdat, aes(x=flexibility, y=value, color=metric)) +
+    geom_line(cex=1) +
+    theme_minimal() +
+    theme(legend.title=element_blank()) +
+    labs(caption="Normalized with minmax", y=NULL) +
+    NULL
+  return(g)
+}
+
+# plot DGP and fitted curve
+plot_data = function(dat, test_idx, models, degree_fitted, coef_value, degree) {
+  gdat = dat %>%
+    slice(-test_idx) %>%
+    mutate(fitted = models[[degree_fitted]]$fitted.values)
+  betas = rep(coef_value, degree+1)
+  g = ggplot(gdat, aes(x=x)) +
+    geom_point(aes(y=y), color="black", shape=21) +
+    stat_function(aes(color="DGP"),fun=function(x) dgp(x, betas, degree), cex=1) +
+    geom_line(aes(y=fitted, color="Fitted"), cex=1) +
+    theme_minimal() +
+    scale_color_manual(values = c("DGP"="black", "Fitted"="red")) +
+    theme(legend.title=element_blank()) +
+    labs(
+      caption=glue("Training data ({100-TESTDATA_PROPORTION*100}% of all data)")
+    ) +
+    NULL
+  return(g)
+}
