@@ -1,12 +1,9 @@
 
 ui = fluidPage(
   theme=shinythemes::shinytheme("sandstone")
+  ,withMathJax()
   ,h2("Overfitting, bias and variance")
-  ,p(
-    "Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem "
-    ,"Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem "
-    ,"Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem Ipsum Lorem "
-  )
+  ,appText()
   ,br()
   ,column(4
           ,wellPanel(
@@ -52,8 +49,8 @@ ui = fluidPage(
   )
   ,column(5
           ,h4("Population, DGP and Fitted Curve")
-            ,plotlyOutput("plot_data")
-    )
+          ,plotlyOutput("plot_data")
+  )
 )
 
 

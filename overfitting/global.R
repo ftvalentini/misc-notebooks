@@ -93,3 +93,14 @@ plot_data = function(dat, test_idx, models, degree_fitted, coef_value, degree) {
     NULL
   return(g)
 }
+
+
+# TEXT OF APP -------------------------------------------------------------
+
+appText = function() {
+  p(
+    ""
+  )
+  
+}
+
