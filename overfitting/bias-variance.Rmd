@@ -1,6 +1,6 @@
 ---
 title: "Bias, variance, complexity and flexibility"
-subtitle: "An introduction"
+subtitle: "The Big Picture"
 output: 
   html_document:
     toc: true
@@ -11,44 +11,97 @@ knit: (function(input, ...) {
   })
 ---
 
+The aim of this post is to introduce some key principles of supervised machine learning in an intuitive and interactive way. If you are only interested to the interactive part you can directly go to [this Shiny app](...). For a detailed introduction to the topic we strongly suggest reading Chapter 2 of [Introduction to Statistical Learning](http://faculty.marshall.usc.edu/gareth-james/ISL/ISLR%20Seventh%20Printing.pdf).
 
-The aim of this app is to introduce the big picture of overfitting in an intuitive and interactive way. For a detailed introduction to this topic we strongly suggest reading Chapter 2 of (Introduction to Statistical Learning),href=http://faculty.marshall.usc.edu/gareth-james/ISL/ISLR%20Seventh%20Printing.pdf  
+### Supervised Learning
 
-When we use machine learning we usually try to predict an unknown target variable $y$ with a set of known features $X$. We assume we can do this because we assume there is a process with some structure which outputs $Y$ according the values of $X$ i.e. we assume there is an actual data generating process (DGP).
-We can represent the DGP with the equation $y = f(X) + \\epsilon$. That is, some part of $y$ depends on $X$ through an unknown function $f(X)$ and another part depends on unknown or unmeasurable features or is just random – we call this the error term $\\epsilon$. 
-Supervised machine learning can be summarised as a task which involves trying to find a function $\\hat{f}(X)$ which resembles $f(X)$ as much as possible. This would enable us to predict $y$ accurately. 
-We can fit this function --that is, train a model-- by using data. In this context data means $n$ examples of a completed DGP such that each example $i$ is made up of a pair $(X_i, y_i)$.  
-The simplest way to assess to what extent our fitted function $\\hat{f}(X)$ fulfills the supervised task is to partition our data into a training set and a test set. We then use the training set to fit the function and we use the test set to evaluate how accurately we can predict $y$ by knowing $X$. 
-There are plenty of accuracy measures. If we are in a regression setting --$y$ is continuous—we can then use the mean squared error (MSE), which is defined as $MSE_{test} = Ave(y, \\hat{f}(X)) ^2$. That is, it is the average of the squared prediction errors over the test data. We want this quantity to be as low as possible – a low $MSE_{test}$ would mean we are estimating the DGP quite well, so much that we can accurately predict examples where $y$ is not known in advance.  
+When we use machine learning we usually try to predict an unknown target variable $y$ with a set of known features $X$. We assume we can do this because we assume there is a process with some structure which outputs $y$ according the values of $X$ i.e. we assume there is an actual **data generating process (DGP)**. We can represent the DGP with the equation 
+
+$$y = f(X) + \epsilon$$ 
+
+That is, some part of $y$ depends on $X$ through an unknown function $f(X)$ and another part depends on unknown or unmeasurable features or is just random – we call this the error term $\epsilon$. 
+
+**Supervised machine learning** can be summarised as a task which involves trying to find a function $\hat{f}(X)$ which resembles $f(X)$ as much as possible. This would enable us to predict $y$ accurately. It is supervised in the sense that $y$ supervises the process of learning $\hat{f}(X)$.
+
+### Learning with data
+
+We can fit this function --i.e. train a model-- by using data. In this context data means $n$ examples of a completed DGP such that each example $i$ is made up of a pair $(X_i, y_i)$.  
+
+The simplest way to assess to what extent our fitted function $\hat{f}(X)$ fulfills the supervised task is to partition our data into a **training set** and a **test set**. We then use the training set to fit the function and we use the test set to evaluate how accurately we can predict $y$ by knowing $X$.  
+
+There are plenty of accuracy measures. If we are in a regression setting --$y$ is continuous—we can then use the **mean squared error (MSE)**, which is defined as 
+
+$$MSE_{test} = Ave(y, \hat{f}(X)) ^2$$
+
+This is the average of the squared prediction errors over the test data. We want this quantity to be as low as possible – a low $MSE_{test}$ would mean we are estimating the DGP quite well, so much that we can accurately predict examples where $y$ is not known in advance.   
+
 Because we are using just one set of examples of the DGP we might think this measure might be rather inaccurate. The performance of our model could be quite different if we split the data differently or if we used a completely different set of examples, both to train the model and to test it.
-If we had access to several realizations of the DGP, we could assess the performance of our model more accurately by estimating $\\hat{f}(X)$ repeatedly on each training set and averaging the $MSE$ over all test sets. We could call this just $MSE$ and it would be defined as the expected value of the test error, $MSE = E(y, \\hat{f}(X)) ^2$
-In practice it is generally not possible to do this, but it helps us to understand some key concepts of machine learning. It can be shown that the $MSE$ can be expressed as 
-$$ MSE =  Var(\\hat{f}(X)) + bias(\\hat{f}(X))^2 + Var(\\epsilon) $$ 
- In other words, the overall performance of any machine learning model depends on three fundamental quantities:
--	Variance $Var(\\hat{f}(X))$ : it represents how much the prediction changes when we fit the model using a different set of examples. If the predictions of a model are too dependent on the training set, then it is said it suffers from high variance. This means that, ceteris paribus, it will tend to perform poorly on other sets of examples i.e. it will have a low $MSE$, while the predictive performance on the training set will tend to be high i.e. it will have a high $MSE_{train}$. 
--	Squared bias $bias(\\hat{f}(X))^2$ :  bias stands for the prediction error made when we cannot successfully estimate the $f(X)$ of the DGP. In general, if the process that creates the data we observe is too complex and our modelling technique is too simple to approximate $f(X)$, the accuracy of our predictions will be ceteris paribus quite poor i.e. the $MSE$ will be low. The $MSE_{train}$ will also probably low.
--	Irreducible error $Var(\\epsilon)$ : it represents how much $y$ varies because of factors other than X. If the target $y$ is highly “unpredictable” –or more precisely, its variability cannot be accounted for by X for any reason that it may be— then the predicted values $\\hat{f}(X)$$ will tend to differ significantly from the actual values $y$ and the performance as measured by the $MSE$ will be low. And there is nothing we can do about it – $X$ is just insufficient to predict $y$.  
-Ideally, we want a model with low variance and low bias, and we pray for a DGP with a low irreducible error given X. There is however a trade-off between bias and variance which makes this hard to achieve. Let us assume a hypothetical setting to portray this.
-If the $f(X)$ that generates $y$ is relatively complex and our model is too simple – that is, it has low flexibility to adapt to the data – then it will suffer from high bias. Even if variance is low, the overall performance on test data will be low.  The poor prediction accuracy produced by too simple models is known as underfitting. 
-We could instead go for a more flexible model that might approximate the DGP better. This will probably improve the prediction accuracy. However, if we go too far and we fit too flexible a model, it will then suffer from high variance: the model will predict accurately on training data because it can flexibly adapt to it, but the accuracy on unseen test data will not be as high. The fitted function is not similar to the DGP – it is just similar to the training data. This phenomenon is known as overfitting. On the other hand the bias of the model will be low because on average the fitted function will resemble the DGP: if we fitted many flexible models over several sets of training data, then the average of them will be a good estimate of the real $f(X)$. Nevertheless, this is not useful because our goal is to generate good predictions with just one fit and one training set. 
+
+If we had access to several realizations of the DGP, we could assess the performance of our model more accurately by estimating $\hat{f}(X)$ repeatedly on each training set and averaging the $MSE$ over all test sets. We could call this simply $MSE$ and it would be defined as the expected value of the test error:
+
+$$MSE = E(y, \hat{f}(X)) ^2$$
+
+In practice it is generally not possible to do such a thing, but it helps us to understand some key concepts of machine learning. 
+
+### Bias and variance
+
+It can be shown that the $MSE$ can be expressed as 
+
+$$ MSE =  Var(\hat{f}(X)) + bias(\hat{f}(X))^2 + Var(\epsilon) $$ 
+
+In other words, the overall performance of any machine learning model depends on three fundamental quantities:
+
+-	Variance $Var(\\hat{f}(X))$ : it represents how much the predicted values change when we fit the model using a different set of examples. If the predictions of a model are too dependent on the training set, then it is said it suffers from high **variance**. This means that *ceteris paribus* it will tend to perform poorly on other sets of examples i.e. it will have a low $MSE$. At the same time, the predictive performance on the training set will tend to be high i.e. it will have a high $MSE_{train}$. 
+
+-	Squared bias $bias(\\hat{f}(X))^2$ : **bias** stands for the prediction error made when we cannot successfully estimate the $f(X)$ of the DGP. In general, if the process that creates the data we observe is too complex and our modelling technique is too simple to approximate $f(X)$, the accuracy of our predictions will be *ceteris paribus* quite poor i.e. the $MSE$ will be low. The $MSE_{train}$ will also probably low.
+
+-	Irreducible error $Var(\\epsilon)$ : it represents how much $y$ varies because of factors other than X. If the target $y$ is highly "unpredictable" --or more precisely, its variability cannot be accounted for by X-- then the predicted values $\hat{f}(X)$ will tend to differ significantly from the actual values $y$ and the performance as measured by the $MSE$ will be low. And there is nothing we can do about it the **irreducible error** --$X$ is just insufficient to predict $y$.  
+
+Ideally, we want a model with low variance and low bias, and we pray for a DGP with a low irreducible error given X. There is however a **trade-off between bias and variance** which makes this hard to achieve. Let us assume a hypothetical setting to portray this.  
+
+If the $f(X)$ that generates $y$ is relatively complex and our model is too simple --that is, it has low **flexibility** to adapt to the data-- then it will suffer from high bias. Even if variance is low, the overall performance on test data will be low. The poor prediction accuracy produced by too simple models is known as **underfitting**.  
+
+We could instead go for a more flexible model that might approximate the DGP better. This will probably improve the prediction accuracy. However, if we go too far and we fit too flexible a model, it will then suffer from high variance: the model will predict accurately on training data because it can flexibly adapt to it, but the accuracy on unseen test data will not be as high. The fitted function is not similar to the DGP -- it is just similar to the training data. This phenomenon is known as **overfitting**. On the other hand the bias of the model will be low because on average the fitted function will resemble the DGP: if we fitted many flexible models over several sets of training data, then the average of them will be a good estimate of the real $f(X)$. Nevertheless, this is not useful because our goal is to generate good predictions with just one fit and one training set. 
+
+***
 The main principle can be thus stated as follows: 
+
 -	too much flexibility implies overfitting (high variance and low bias), while
 -	too little flexibility implies underfitting (low variance and high bias)
-Therefore, one fundamental takeaway is that the flexibility of a given model must be carefully gauged so that good predictive accuracy can be achieved by simultaneously achieving relatively low variance and relatively low bias. Most of the work done when fitting a model concerns dealing with this gauge. 
-In practice this work usually begins by splitting data into training and test sets and assessing the error on both sets. 
-As flexibility is increased, the training error tends to decrease monotonically as bias decreases. On the other hand, the error on test data will tend to decrease at first as the size of the reduction in bias is larger than the size of the increase of variance; after a certain value of flexibility the test error will start to grow as the effect of high variance is larger than the effect of low bias. Let us remember that test error is an estimate of the overall expected error of any test set.
-We might wonder what is it that determines the exact value of flexibility where test error is minimum – in other words, why is it that the rates of change of bias and variance vary as flexibility varies? What determines these rates of change? The answer lies in the characteristics of the DGP, namely the complexity of $f(X)$ and the irreducible error $ \\epsilon$: two quantities that cannot be gauged or controlled by any means. 
-la tasa de variación de varianza y sesgo a medida que sube la complejidad de un modelo depende de:
-error irreducible: si es alto, la varianza del modelo crece más rápido 
-complejidad del dgp: si es alta, el sesgo del modelo cae más rápido
+***
 
-See it for yourself
-In this shiny app you can see how 
+Therefore, one fundamental takeaway is that the flexibility of a given model must be carefully gauged so that good predictive accuracy can be achieved: this implies simultaneously achieving relatively low variance and relatively low bias. Most of the work done when fitting a model concerns dealing with this gauge.  
 
-Description de app:
-We assume a polynomic data generating process (DGP) such that $y = f(X) + epsilon$ and $f(X) = polinomio grado d$. The degree $d$ of the polynomial defines the complexity of the DGP: the larger (smaller) it is, the more (less) complex it is. 
-The irreducible error is given by $Var(epsilon)$ and its size is determined by XXX. When the irreducible error is larger (smaller), the prediction error of the fitted model on test data is larger (smaller).
-We assume we fit a polynomic function of $X$ in order to predict $y$. The degree of the fitted polynomial defines the flexibility of the model: the larger (smaller) it is, the more (less) flexible it is. On the leftmost plot the MSE of all flexibilities 1 through 20 are plotted. On the rightmost plot only one fitted polynomial is shown, with degree as fixed in the XXX slider.
-Data is generated at random each time any of the sliders’ values is modified, except for the value of the degree of the fitted polynomial.
+In practice this work usually begins by splitting data into training and test sets and assessing the error on both sets.  
 
+As flexibility is increased, the training error tends to decrease monotonically as bias decreases. On the other hand, the error on test data will tend to decrease at first as the size of the reduction in bias is larger than the size of the increase of variance; after a certain value of flexibility the test error will start to grow as the effect of high variance is larger than the effect of low bias. Let us remember that test error is an estimate of the overall expected error of any test set.  
+
+### The shape of the trade-off
+
+We might wonder what is it that determines the exact value of flexibility where test error is minimum – in other words, why is it that the rates of change of bias and variance vary as flexibility varies? What determines these rates of change? 
+
+The answer lies in the characteristics of the DGP, namely the **complexity** of $f(X)$ and the **irreducible error** $\epsilon$: two quantities that cannot be gauged or controlled by any means.  
+
+We have seen that as the flexibility of a model increases, variance also increases. An interesting fact is that the rate of growth of variance depends heavily on the irreducible error. If the values of $y$ are highly random once $X$ has been accounted for, going for more flexible models is much riskier. As $y$ is highly variable and $X$ is not useful to account for this variability, highly flexible models will tend to "stick" to the training data in such a way that the fitted $\hat{f}(X)$ has nothing to do with the actual $f(X)$ --the patterns found during training are not representative of the real DGP, and therefore variance increases faster when flexibility increases. On the other hand, if the size of the irreducible is low, this probability that this happens is much lower as there are no significant random patterns to be learnt during training.  
+
+The complexity of the actual $f(X)$ is also relevant to understand how flexibility affects performance. In presence of a highly complex DGP, the gains of flexibility in terms of prediction accuracy are larger than in presence of a simple DGP. This happens by way of bias reduction. If the function to learn is really complex, then bias will decrease much faster as we go for more flexible models. Analogously, when the structure of data is simple to estimate, the gains in term of bias reduction will tend to be low --bias will decrease slowly or not at all.
+
+***
+We can then conclude that:
+
+- when the irreducible error is large (small), predictive performance tends to reach a minimum at low (high) values of flexibility
+- when the DGP complexity is large (small), predictive performance tends to reach a minimum at high (low) values of flexibility
+
+The combination of both factors determines the final point at which accuracy is optimal.
+***
+
+### See it for yourself
+
+As stated so far, the three main problems causing poor predictive performance are irreducible error, underfitting and overfitting. Of these, only the last two are controllable and both have their roots in the bias-variance trade-off. The size and shape of this trade-off is affected by:
+
+- the flexibility of the modelling method
+- the complexity of the data generating process
+- the irreducible variability of the target variable
+
+In [this Shiny app](XXX) you can interactively understand how these factors affect predictive performance in supervised learning. Have fun!
 

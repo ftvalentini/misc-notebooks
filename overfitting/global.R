@@ -98,9 +98,33 @@ plot_data = function(dat, test_idx, models, degree_fitted, coef_value, degree) {
 # TEXT OF APP -------------------------------------------------------------
 
 appText = function() {
-  p(
-    ""
-  )
   
+  p(
+    "TODO: an intro"
+  )
+  ,hr()
+  ,p(
+    "We assume a polynomic data generating process (DGP) such that $y = f(X) + \\epsilon$ and $f(X) = polinomio grado d$. "
+    "The degree $d$ of the polynomial defines the complexity of the DGP: "
+    ,"the larger (smaller) it is, the more (less) complex it is. "
+  )
+  ,"The irreducible error is given by $Var(epsilon)$ and its size is determined by XXX."
+  ,"When the irreducible error is larger (smaller), the prediction error of the fitted model on test data is larger (smaller)."
+  ,p(
+    "We assume we fit a polynomic function of $X$ in order to predict $y$."
+    ,"The degree of the fitted polynomial defines the flexibility of the model: "
+    ,"the larger (smaller) it is, the more (less) flexible it is."
+  )
+  ,p(
+    "On the leftmost plot the MSE of all flexibilities 1 through 20 are plotted. "
+    ,"On the rightmost plot only one fitted polynomial is shown, with degree as fixed in the XXX slider. "
+  )
+  ,p(
+    "Data is generated at random each time any of the sliders’ values is modified, except for the value of the degree of the fitted polynomial."
+  )
+  )
+
 }
+
+
 
