@@ -23,7 +23,7 @@ ui = fluidPage(
   )
   ,column(4
           ,wellPanel(
-            h4("Complexity of fit")
+            h4("Flexibility of fit")
             ,helpText("Degree of polynomial fitted in rightmost plot")
             ,sliderInput("degree_fitted", label=NULL
                          ,min=1, max=20, value=1, step=1)

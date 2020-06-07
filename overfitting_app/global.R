@@ -56,7 +56,7 @@ eval_models = function(models, dat, test_idx) {
   return(out)
 }
 
-# plot performance by complexity
+# plot performance by flexibility
 plot_performance = function(models_results, complexity_vec) {
   gdat = data.frame(
     flexibility = complexity_vec
@@ -69,7 +69,8 @@ plot_performance = function(models_results, complexity_vec) {
     geom_line(cex=1) +
     theme_minimal() +
     theme(legend.title=element_blank()) +
-    labs(caption="Normalized with minmax", y=NULL) +
+    labs(caption="Normalized with minmax", y=NULL
+         ,x="Model flexibility") +
     NULL
   return(g)
 }
@@ -81,11 +82,11 @@ plot_data = function(dat, test_idx, models, degree_fitted, coef_value, degree) {
     mutate(fitted = models[[degree_fitted]]$fitted.values)
   betas = rep(coef_value, degree+1)
   g = ggplot(gdat, aes(x=x)) +
-    geom_point(aes(y=y), color="black", shape=21) +
+    geom_point(aes(y=y), color="black", shape=21, alpha=0.5, cex=0.8) +
     stat_function(aes(color="DGP"),fun=function(x) dgp(x, betas, degree), cex=1) +
     geom_line(aes(y=fitted, color="Fitted"), cex=1) +
     theme_minimal() +
-    scale_color_manual(values = c("DGP"="black", "Fitted"="red")) +
+    scale_color_manual(values = c("DGP"="navy", "Fitted"="red")) +
     theme(legend.title=element_blank()) +
     labs(
       caption=glue("Training data ({100-TESTDATA_PROPORTION*100}% of all data)")
@@ -102,27 +103,27 @@ appText = function() {
   p(
     "TODO: an intro"
   )
-  ,hr()
-  ,p(
-    "We assume a polynomic data generating process (DGP) such that $y = f(X) + \\epsilon$ and $f(X) = polinomio grado d$. "
-    "The degree $d$ of the polynomial defines the complexity of the DGP: "
-    ,"the larger (smaller) it is, the more (less) complex it is. "
-  )
-  ,"The irreducible error is given by $Var(epsilon)$ and its size is determined by XXX."
-  ,"When the irreducible error is larger (smaller), the prediction error of the fitted model on test data is larger (smaller)."
-  ,p(
-    "We assume we fit a polynomic function of $X$ in order to predict $y$."
-    ,"The degree of the fitted polynomial defines the flexibility of the model: "
-    ,"the larger (smaller) it is, the more (less) flexible it is."
-  )
-  ,p(
-    "On the leftmost plot the MSE of all flexibilities 1 through 20 are plotted. "
-    ,"On the rightmost plot only one fitted polynomial is shown, with degree as fixed in the XXX slider. "
-  )
-  ,p(
-    "Data is generated at random each time any of the sliders’ values is modified, except for the value of the degree of the fitted polynomial."
-  )
-  )
+  # ,hr()
+  # ,p(
+  #   "We assume a polynomic data generating process (DGP) such that $y = f(X) + \\epsilon$ and $f(X) = polinomio grado d$. "
+  #   "The degree $d$ of the polynomial defines the complexity of the DGP: "
+  #   ,"the larger (smaller) it is, the more (less) complex it is. "
+  # )
+  # ,"The irreducible error is given by $Var(epsilon)$ and its size is determined by XXX."
+  # ,"When the irreducible error is larger (smaller), the prediction error of the fitted model on test data is larger (smaller)."
+  # ,p(
+  #   "We assume we fit a polynomic function of $X$ in order to predict $y$."
+  #   ,"The degree of the fitted polynomial defines the flexibility of the model: "
+  #   ,"the larger (smaller) it is, the more (less) flexible it is."
+  # )
+  # ,p(
+  #   "On the leftmost plot the MSE of all flexibilities 1 through 20 are plotted. "
+  #   ,"On the rightmost plot only one fitted polynomial is shown, with degree as fixed in the XXX slider. "
+  # )
+  # ,p(
+  #   "Data is generated at random each time any of the sliders’ values is modified, except for the value of the degree of the fitted polynomial."
+  # )
+  
 
 }
 
