@@ -1,6 +1,6 @@
 
 ui = fluidPage(
-  theme=shinythemes::shinytheme("sandstone")
+  theme=shinythemes::shinytheme("flatly")
   ,withMathJax()
   ,h2("Overfitting, bias and variance")
   ,appText()
@@ -10,7 +10,7 @@ ui = fluidPage(
             h4("Complexity of DGP")
             ,helpText("Degree of polynomial of DGP")
             ,sliderInput("degree_dgp", label=NULL
-                         ,min=1, max=20, value=1, step=1)
+                         ,min=1, max=20, value=3, step=1)
           )
   )
   ,column(3
@@ -40,11 +40,17 @@ ui = fluidPage(
   ,column(6
           ,h4(strong("Training and Test MSE"))
           ,plotlyOutput("plot_performance")
+          ,p("MSE normalized with minmax")
   )
   ,column(6
           ,h4(strong("Population, DGP and Fitted Curve"))
           ,plotlyOutput("plot_data")
+          ,p(glue("Training data ({100-TESTDATA_PROPORTION*100}% of all data)"))
   )
+  ,column(12
+          ,hr()
+  )
+  
 )
 
 

@@ -74,7 +74,7 @@ plot_performance = function(models_results, complexity_vec) {
     geom_line(cex=1) +
     theme_minimal() +
     theme(legend.title=element_blank()) +
-    labs(caption="Normalized with minmax", y=NULL
+    labs(caption="MSE normalized with minmax", y=NULL
          ,x="Model flexibility") +
     NULL
   return(g)
@@ -90,11 +90,12 @@ plot_data = function(dat, test_idx, models, degree_fitted, degree) {
   g = ggplot(gdat, aes(x=x)) +
     geom_point(aes(y=y), color="black", shape=21, alpha=0.5, cex=0.8) +
     stat_function(aes(color=labels[1]),fun=function(x) dgp(x, betas, degree), cex=1) +
-    geom_line(aes(y=fitted, color=labels[2]), cex=1) +
+    geom_line(aes(y=fitted, color=labels[2]), size=0.5) +
     theme_minimal() +
     scale_color_manual(
       values = c("navy", "red") %>% setNames(labels)
     ) +
+    scale_y_continuous(labels = scales::comma) +
     theme(legend.title=element_blank()) +
     labs(
       caption=glue("Training data ({100-TESTDATA_PROPORTION*100}% of all data)")
@@ -107,11 +108,10 @@ plot_data = function(dat, test_idx, models, degree_fitted, degree) {
 # TEXT OF APP -------------------------------------------------------------
 
 appText = function() {
-  
   div(
     p(
       "As explained in "
-      ,a("this post", href="XXX")
+      ,a("this post", href="http://ftvalentini.github.io/misc-notebooks/bias-variance.html")
       ,", the size and shape of the bias-variance trade-off in any supervised problem is determined by:" 
       ,tags$ul(
         tags$li("the flexibility of the modelling method")
@@ -121,25 +121,31 @@ appText = function() {
     )
     ,hr()
     ,p(
-      "In this example, we assume a polynomic data generating process (DGP) such that $y = f(X) + \\epsilon$ and $f(X) = \\beta_0 + \\beta_{1}x_1 + \\beta_{2}x_2 + ... + \\beta_{d}x_d + $. "
-      ,"The degree $d$ of the polynomial defines the complexity of the DGP: "
-      ,"the larger (smaller) it is, the more (less) complex it is. "
-      ,"The irreducible error is given by $Var(\\epsilon)$ and its size is determined by XXX."
-      ,"When the irreducible error is larger (smaller), the prediction error of the fitted model on test data is larger (smaller)."
+      "In this example, we assume a polynomic data generating process (DGP) such that \\(y = f(X) + \\epsilon\\) and \\(f(X) = \\beta_0 + \\beta_{1}x_1 + \\beta_{2}x_2 + ... + \\beta_{d}x_d \\). "
     )
     ,p(
-      "We assume we fit a polynomic function of $X$ in order to predict $y$."
+      "The degree \\(d\\) of the polynomial defines the complexity of the DGP: "
+      ,"the larger (smaller) it is, the more (less) complex it is. "
+    )
+    ,p(  
+      "The irreducible error is given by \\(Var(\\epsilon)\\)."
+      ,"When it is larger (smaller), the prediction error of the fitted model on test data is larger (smaller)."
+      ,"In this example, the variance of the error is defined in the second slider as a proportion of the true outcome \\(y\\)'s largest value."
+    )
+    ,p(
+      "We assume we fit a polynomic function of $X$ in order to predict \\(y\\)."
       ,"The degree of the fitted polynomial defines the flexibility of the model: "
       ,"the larger (smaller) it is, the more (less) flexible it is."
     )
     ,p(
       "On the leftmost plot the MSE of all flexibilities 1 through 20 are plotted. "
-      ,"On the rightmost plot only one fitted polynomial is shown, with degree as fixed in the XXX slider. "
+      ,"On the rightmost plot only one fitted polynomial is shown, with degree as fixed in the third slider."
     )
     ,p(
       "Data is generated at random each time any of the sliders’ values is modified, except for the value of the degree of the fitted polynomial."
     )
-    )
+  )  
+  
 }
 
 
