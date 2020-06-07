@@ -109,7 +109,7 @@ The combination of both factors determines the final point at which accuracy is 
 See it for yourself
 -------------------
 
-As stated so far, the three main problems causing poor predictive performance are irreducible error, underfitting and overfitting. Of these, only the last two are controllable and both have their roots in the bias-variance trade-off. The size and shape of this trade-off is affected by:
+As stated so far, the three main problems causing poor predictive performance are irreducible error, underfitting and overfitting. Of these, only the last two are somehow controllable and both have their roots in the bias-variance trade-off. The size and shape of this trade-off is affected by:
 
 - the flexibility of the modelling method
 - the complexity of the data generating process
