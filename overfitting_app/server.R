@@ -6,7 +6,7 @@ library(glue)
 server = function(input, output, session) {
   
   randomData = reactive({
-    make_data(seed=RANDOM_SEED, n_rows=input$n, coef_value=input$coef_value
+    make_data(seed=RANDOM_SEED, n_rows=input$n
               ,degree=input$degree_dgp, error_size=input$error_size)
   })
   TestIdx = reactive({
@@ -26,7 +26,7 @@ server = function(input, output, session) {
   
   output$plot_data = renderPlotly({
     plot_data(randomData(), TestIdx(), Models()
-              ,input$degree_fitted, input$coef_value,input$degree_dgp) 
+              ,input$degree_fitted, input$degree_dgp) 
   })
   
 }
