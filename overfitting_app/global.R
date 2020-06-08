@@ -56,11 +56,6 @@ eval_models = function(models, dat, test_idx) {
   return(out)
 }
 
-
-dat = make_data(123, n_rows=200, degree=5, error_size=0.05)
-mods = train_models(dat, 50:70, complexity_vec=1:20)
-
-
 # plot performance by flexibility
 plot_performance = function(models_results, complexity_vec) {
   gdat = data.frame(
@@ -71,7 +66,7 @@ plot_performance = function(models_results, complexity_vec) {
     gather(metric, value, -flexibility) %>%
     mutate(value = minmax(value))
   g = ggplot(gdat, aes(x=flexibility, y=value, color=metric)) +
-    geom_line(cex=1) +
+    geom_line(size=0.8, alpha=0.8) +
     theme_minimal() +
     theme(legend.title=element_blank()) +
     labs(caption="MSE normalized with minmax", y=NULL
@@ -95,8 +90,11 @@ plot_data = function(dat, test_idx, models, degree_fitted, degree) {
     scale_color_manual(
       values = c("navy", "red") %>% setNames(labels)
     ) +
-    scale_y_continuous(labels = scales::comma) +
-    theme(legend.title=element_blank()) +
+    theme(
+      legend.title=element_blank()
+      ,axis.text.x=element_blank()
+      ,axis.text.y=element_blank()
+    ) +
     labs(
       caption=glue("Training data ({100-TESTDATA_PROPORTION*100}% of all data)")
     ) +
@@ -133,7 +131,7 @@ appText = function() {
       ,"In this example, the variance of the error is defined in the second slider as a proportion of the true outcome \\(y\\)'s largest value."
     )
     ,p(
-      "We assume we fit a polynomic function of $X$ in order to predict \\(y\\)."
+      "We assume we fit a polynomic function of \\(X\\) in order to predict \\(y\\)."
       ,"The degree of the fitted polynomial defines the flexibility of the model: "
       ,"the larger (smaller) it is, the more (less) flexible it is."
     )

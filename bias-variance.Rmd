@@ -11,7 +11,7 @@ knit: (function(input, ...) {
 ---
 
 \
-The aim of this post is to introduce some key principles of supervised machine learning in an intuitive and interactive way. If you are only interested to the interactive part you can directly go to [this Shiny app](...). For a detailed introduction to the topic we strongly suggest reading Chapter 2 of [Introduction to Statistical Learning](http://faculty.marshall.usc.edu/gareth-james/ISL/ISLR%20Seventh%20Printing.pdf).
+The aim of this post is to introduce some key principles of supervised machine learning in an intuitive and interactive way. If you are only interested to the interactive part you can directly go to [this Shiny app](https://ftvalentini.shinyapps.io/overfitting_app/). For a detailed introduction to the topic we strongly suggest reading Chapter 2 of [Introduction to Statistical Learning](http://faculty.marshall.usc.edu/gareth-james/ISL/ISLR%20Seventh%20Printing.pdf).
 
 Supervised Learning
 -------------------
@@ -115,5 +115,5 @@ As stated so far, the three main problems causing poor predictive performance ar
 - the complexity of the data generating process
 - the irreducible variability of the target variable
 
-In [this Shiny app](XXX) you can interactively understand how these factors affect predictive performance in supervised learning. Have fun!
+In [this Shiny app](https://ftvalentini.shinyapps.io/overfitting_app/) you can interactively understand how these factors affect predictive performance in supervised learning. Have fun!
 
