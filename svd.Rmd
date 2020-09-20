@@ -18,6 +18,7 @@ El peso de los primeros singular values depende del coeficiente de variación de
 
 ```{r }
 set.seed(55)
+n = 10
 columnas = replicate(n=4, rnorm(n, 200, 50))
 mat = columnas
 
@@ -144,7 +145,7 @@ Si aumenta la correlación entre dos columnas, ceteris paribus, aumenta el peso 
 
 ```{r }
 set.seed(55)
-high = replicate(n=2, rnorm(n, 200, 50))
+high = replicate(n=2, rnorm(n, 200, 10))
 low = replicate(n=2, rnorm(n, 1, 0.25))
 mat = cbind(high, low)
 
@@ -160,7 +161,8 @@ svd_obj$v
 
 ```{r }
 set.seed(55)
-high = replicate(n=2, rnorm(n, 200, 50))
+n = 10
+high = replicate(n=2, rnorm(n, 200, 10))
 low = replicate(n=2, rnorm(n, 1, 0.25))
 high[,2] = high[,1] * -2 + runif(n)
 mat = cbind(high, low)
@@ -174,9 +176,130 @@ svd_obj$v
 ```
 
 
-La correlación alta negativa/positiva entre dos columnas no sería lo mismo que valores bajos en valor absoluto (casi cero) de una columna, se corresponda con valores altos de otra, y viceversa (por ejemplo, los jugadores que tiran de 3 no tiran de 2, y lo mismo al revés). En este escenario las variables (cantidad de triples y dobles, por ejemplo) están correlacionadas mediadas por una variable binaria latente ("tipo de tirador"), y eso no es exactamente lo mismo que correlacion absoluta alta. Parecería que los valores cercanos a cero importan.
+La correlación alta negativa/positiva entre dos columnas no sería lo mismo que valores absolutos bajos (casi cero) de una columna se correspondan con valores altos de otra, y viceversa (por ejemplo, los jugadores que tiran de 3 no tiran de 2, y lo mismo al revés). En este escenario las variables (cantidad de triples y dobles) están correlacionadas mediadas por una variable binaria latente ("tipo de tirador"), y eso no es exactamente lo mismo que correlación absoluta alta. Parecería que los valores cercanos a cero importan.
+
+Baseline:
+
+```{r}
+set.seed(555)
+n = 10
+high = replicate(n=2, rnorm(n, 200, 10))
+mat = cbind(high)
+# low = replicate(n=2, rnorm(n, 1, 0.25))
+# mat = cbind(high, low)
+
+plot(mat)
+cor(mat)
+
+svd_obj = svd(mat)
+svd_obj$d / sum(svd_obj$d)
+
+```
+
+Escenario de correlación mediada por flag (variable latente):
+
+```{r}
+set.seed(555)
+n = 10
+high = replicate(n=2, rnorm(n, 200, 10))
+flag = rbinom(n, 1, 0.5)
+high[flag == 0, 1] = 0
+high[flag == 1, 2] = 0 
+mat = cbind(high)
+# low = replicate(n=2, rnorm(n, 1, 0.25))
+# mat = cbind(high, low)
+plot(mat)
+cor(mat)
+
+svd_obj = svd(mat)
+svd_obj$d / sum(svd_obj$d)
+
+```
+
+En lugar de ceros, probamos usando un valor constante pero a la misma distancia que la media del resto de las variables. En este caso la correlación entre las variables se mantiene aproximadamente igual que en el escenario de los ceros.
+
+```{r}
+set.seed(555)
+n = 10
+high = replicate(n=2, rnorm(n, 200, 10))
+flag = rbinom(n, 1, 0.5)
+high[flag == 0, 1] = 400
+high[flag == 1, 2] = 400
+mat = cbind(high)
+# low = replicate(n=2, rnorm(n, 1, 0.25))
+# mat = cbind(high, low)
+
+plot(mat)
+cor(mat)
+
+svd_obj = svd(mat)
+svd_obj$d / sum(svd_obj$d)
+
+```
+
+No entendemos por qué el primer singular value crece tanto en relación al escenario de ceros -- SVD es la mejor aproximación según error cuadrático medio y el ECM entre 0 y 200 debería ser similar entre 200 y 400.
+
+Probamos un ejemplo exagerado con valores constantes (0, 200 o 400). Vemos que no da lo mismo usar 0 o 400. Cuando usamos 0 el primer singular value tiene el mínimo posible para dos columnas (0.5), y cuando pasamos a 400 (que tiene la misma distancia vs 200 !!!) el singular value a pasa a 0.75.
+
+```{r}
+mat = matrix( 200, ncol=2, nrow=10)
+mat[1:5, 1] = 0
+mat[6:10, 2] = 0
+
+plot(mat)
+cor(mat)
+
+svd_obj = svd(mat)
+svd_obj$d / sum(svd_obj$d)
+svd_obj$v
+
+# svd_obj$d[1] * svd_obj$u[,1] %*% t(svd_obj$v[,1]) # aprox rango 1
+
+```
+
+```{r}
+mat = matrix( 200, ncol=2, nrow=10)
+mat[1:5, 1] = 400
+mat[6:10, 2] = 400
+
+plot(mat)
+cor(mat)
+
+svd_obj = svd(mat)
+svd_obj$d / sum(svd_obj$d)
+svd_obj$v
+
+```
+
+No queda claro qué pasa y por qué cuando se ponen constantes más alejadas de 200, como -200 y 20000 ...
+
+```{r}
+mat = matrix( 200, ncol=2, nrow=10)
+mat[1:5, 1] = -200
+mat[6:10, 2] = -200
+
+cor(mat)
+
+svd_obj = svd(mat)
+svd_obj$d / sum(svd_obj$d)
+svd_obj$u
+svd_obj$v
+
+```
 
 
-TODO:
-- como afectan correlaciones mas altas entre las columnas?
-- como afecta la estructura de las filas?
+```{r}
+mat = matrix( 200, ncol=2, nrow=10)
+mat[1:5, 1] = 20000
+mat[6:10, 2] = 20000
+
+cor(mat)
+
+svd_obj = svd(mat)
+svd_obj$d / sum(svd_obj$d)
+
+svd_obj$d[1] * svd_obj$u[,1] %*% t(svd_obj$v[,1]) # aprox rango 1
+
+```
+
+TODO: agregar las 2 columnas low y volver a correr los chunks de correlaciones
