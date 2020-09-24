@@ -303,3 +303,84 @@ svd_obj$d[1] * svd_obj$u[,1] %*% t(svd_obj$v[,1]) # aprox rango 1
 ```
 
 TODO: agregar las 2 columnas low y volver a correr los chunks de correlaciones
+
+
+Los singular values son equivalentes a la norma Frobenius de las aproximaciones (en realidad, de cada matriz que se forma por multiplicar distintas columnas de U y V con D)
+Es decir, D1 es la norma Frobenius de D[1]*U[,1]%*%t(V[,1]). D2 es la Frobenius de D[2]*U[,2]%*%t(V[,2])
+La norma Frobenius creo que es la extensión de la distancia Euclideana. La raiz de la suma de cada componente de la matriz al cuadrado.
+```{r}
+set.seed(555)
+n = 10
+high = replicate(n=2, rep(200,10))
+flag = rbinom(n, 1, 0.5)
+high[flag == 0, 1] = 0
+high[flag == 1, 2] = 0 
+mat = cbind(high)
+# low = replicate(n=2, rnorm(n, 1, 0.25))
+# mat = cbind(high, low)
+plot(mat)
+cor(mat)
+svd_obj = svd(mat)
+svd_obj$d / sum(svd_obj$d)
+
+r1 = svd_obj$d[1]  * svd_obj$u[,1] %*% t(svd_obj$v[,1])
+norm(r1, "F")
+```
+
+En el caso donde en vez de 200 y 0, tenemos 400 y 200. La reconstrucción es poner 300 en todo en R1 y luego compensar con R2. En ese caso R1 tiene una norma mayor que llenar los 400 primero y luego los 200. 
+
+
+```{r}
+mat = matrix(c(200,0,0,200), nrow =2, ncol = 2)
+# plot(mat)
+# cor(mat)
+svd_obj = svd(mat)
+svd_obj$d / sum(svd_obj$d)
+
+r1 = svd_obj$d[1]  * svd_obj$u[,1] %*% t(svd_obj$v[,1])
+norm(r1, "F")
+
+r2 = svd_obj$d[2]  * svd_obj$u[,2] %*% t(svd_obj$v[,2])
+norm(r2, "F")
+```
+VS
+
+```{r}
+mat = matrix(c(400,200,200,400), nrow =2, ncol = 2)
+# plot(mat)
+# cor(mat)
+svd_obj = svd(mat)
+svd_obj$d / sum(svd_obj$d)
+
+r1 = svd_obj$d[1]  * svd_obj$u[,1] %*% t(svd_obj$v[,1])
+norm(r1, "F")
+
+
+r2 = svd_obj$d[2]  * svd_obj$u[,2] %*% t(svd_obj$v[,2])
+norm(r2, "F")
+```
+Aca de nuevo juega el valor absoluto. Si hacemos el mismo ejercicio, misma distancia pero 1000 vs 800. Es todavia
+mas abultada la diferencia. Porque la aproximacion pone 900 en todo y tiene norma mucho mayor que la correccion posterior de 100
+
+```{r}
+mat = matrix(c(1000,800,800,1000), nrow =2, ncol = 2)
+# plot(mat)
+# cor(mat)
+svd_obj = svd(mat)
+svd_obj$d / sum(svd_obj$d)
+
+r1 = svd_obj$d[1]  * svd_obj$u[,1] %*% t(svd_obj$v[,1])
+norm(r1, "F")
+
+
+r2 = svd_obj$d[2]  * svd_obj$u[,2] %*% t(svd_obj$v[,2])
+norm(r2, "F")
+```
+
+En el caso de 200 vs 0, es lo en terminos de norma aproximar primero una columna y luego la otra que hacer el promedio y compensar. Debe ser por "azar" que aproxima primero una entera y no hace el approach de poner el promedio.
+
+```{r}
+mat = matrix(c(100,100,100,100), nrow =2, ncol = 2)
+norm(mat, "F")
+```
+
