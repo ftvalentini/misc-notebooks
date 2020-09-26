@@ -377,7 +377,7 @@ r2 = svd_obj$d[2]  * svd_obj$u[,2] %*% t(svd_obj$v[,2])
 norm(r2, "F")
 ```
 
-En el caso de 200 vs 0, es lo en terminos de norma aproximar primero una columna y luego la otra que hacer el promedio y compensar. Debe ser por "azar" que aproxima primero una entera y no hace el approach de poner el promedio.
+En el caso de 200 vs 0, es lo mismo en terminos de norma aproximar primero una columna y luego la otra que hacer el promedio y compensar. Debe ser por "azar" que aproxima primero una entera y no hace el approach de poner el promedio.
 
 ```{r}
 mat = matrix(c(100,100,100,100), nrow =2, ncol = 2)
