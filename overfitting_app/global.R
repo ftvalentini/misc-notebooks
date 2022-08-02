@@ -6,33 +6,29 @@ library(plotly)
 
 # param -------------------------------------------------------------------
 
-RANDOM_SEED = 25
+RANDOM_SEED = 42
 COMPLEXITIES = 1:20
-TESTDATA_PROPORTION = 0.2
-BETAS_VALUE = 0.1
+TESTDATA_PROPORTION = 0.8
 
 # helpers ---------------------------------------------------------------
 
 # MSE
 mse = function(a, b) sum((a - b)**2) / length(b)
-# minmax
-minmax = function(x) (x - min(x)) / (max(x) - min(x))
+
 # return conditional mean of a polynomic DGP with data x, coef and degree
-dgp = function(x, betas, degree) {
-  mat = rep(list(x), degree+1) %>%
-    map2(0:degree, function(x,y) x**y) %>%
-    bind_cols() %>%
-    as.matrix()
-  return(mat%*%betas)
+dgp = function(x, period) {
+  res = x + sin(period * x) 
+  return(res)
 }
 
 # make random data
-make_data = function(seed, n_rows, degree, error_size) {
+make_data = function(seed, n_rows, complexity, error_size) {
   set.seed(seed)
-  x = runif(n_rows, -100, 100)
-  betas = rep(BETAS_VALUE, degree+1)
-  media = dgp(x, betas=betas, degree=degree)
-  y = rnorm(n_rows, media, error_size*max(media))
+  x = runif(n_rows, 0, 1)
+  f_x = dgp(x, period=complexity)
+  epsilon_sd = error_size * (max(f_x) - min(f_x)) 
+  epsilon = rnorm(n_rows, mean=0, sd=epsilon_sd) # 'error' es una proporcion del rango de y
+  y = f_x + epsilon
   dat = data.frame(x=x, y=y)
   return(dat)
 }
@@ -40,18 +36,18 @@ make_data = function(seed, n_rows, degree, error_size) {
 # train many models according to flexibility
 train_models = function(dat, test_idx, complexity_vec) {
   models = complexity_vec %>%
-    map(function(f) lm(y ~ poly(x,f), data=dat[-test_idx, ]))
+    map(function(f) loess(y ~ x, data=dat[-test_idx,], span=1/f, 
+                          control=loess.control(surface="direct")))
   return(models)
 }
 
 # eval many fitted models according to flexibility
 eval_models = function(models, dat, test_idx) {
-  preds = models %>%
-    map(function(m) predict(m, dat[test_idx,]))
-  mses_train = models %>%
-    map_dbl(function(m) mse(dat$y[-test_idx], m$fitted.values))
-  mses_test = preds %>%
-    map_dbl(function(p) mse(dat$y[test_idx], p))
+  preds = models %>% map(function(m) predict(m, dat))
+  preds_train = preds %>% map(function(x) x[-test_idx])
+  preds_test = preds %>% map(function(x) x[test_idx])
+  mses_train = preds_train %>% map_dbl(function(p) mse(dat$y[-test_idx], p))
+  mses_test = preds_test %>% map_dbl(function(p) mse(dat$y[test_idx], p))
   out = list(train=mses_train, test=mses_test)
   return(out)
 }
@@ -63,28 +59,27 @@ plot_performance = function(models_results, complexity_vec) {
     ,mse_train = models_results$train
     ,mse_test = models_results$test
   ) %>%
-    gather(metric, value, -flexibility) %>%
-    mutate(value = minmax(value))
+    gather(metric, value, -flexibility) 
   g = ggplot(gdat, aes(x=flexibility, y=value, color=metric)) +
     geom_line(size=0.8, alpha=0.8) +
     theme_minimal() +
     theme(legend.title=element_blank()) +
-    labs(caption="MSE normalized with minmax", y=NULL
-         ,x="Model flexibility") +
+    labs(caption="MSE", y=NULL, x="Model flexibility") +
     NULL
   return(g)
 }
 
 # plot DGP and fitted curve
-plot_data = function(dat, test_idx, models, degree_fitted, degree) {
+plot_data = function(dat, test_idx, models, flexibility_fitted, period) {
   gdat = dat %>%
     slice(-test_idx) %>%
-    mutate(fitted = models[[degree_fitted]]$fitted.values)
-  betas = rep(BETAS_VALUE, degree+1)
-  labels = c("DGP", glue("Fitted (deg.=",degree_fitted,")"))
+    mutate(fitted = predict(models[[flexibility_fitted]], x))
+  labels = c("DGP", glue("Fitted (smooth.=", round(1/flexibility_fitted, 3), ")"))
   g = ggplot(gdat, aes(x=x)) +
     geom_point(aes(y=y), color="black", shape=21, alpha=0.5, cex=0.8) +
-    stat_function(aes(color=labels[1]),fun=function(x) dgp(x, betas, degree), cex=1) +
+    stat_function(
+      aes(color=labels[1]), fun=function(x) dgp(x, period), cex=1
+    ) +
     geom_line(aes(y=fitted, color=labels[2]), size=0.5) +
     theme_minimal() +
     scale_color_manual(
@@ -99,7 +94,7 @@ plot_data = function(dat, test_idx, models, degree_fitted, degree) {
       caption=glue("Training data ({100-TESTDATA_PROPORTION*100}% of all data)")
     ) +
     NULL
-  return(g)
+    return(g)
 }
 
 
@@ -119,28 +114,28 @@ appText = function() {
     )
     ,hr()
     ,p(
-      "In this example, we assume a polynomic data generating process (DGP) such that \\(y = f(X) + \\epsilon\\) and \\(f(X) = \\beta_0 + \\beta_{1}x_1 + \\beta_{2}x_2 + ... + \\beta_{d}x_d \\). "
+      "In this example, we assume a sinusoidal data generating process (DGP) such that \\(y = f(X) + \\epsilon\\) and \\(f(X) = X + \\sin(\\beta X) \\). "
     )
     ,p(
-      "The degree \\(d\\) of the polynomial defines the complexity of the DGP: "
+      "The periodicity \\(\\beta\\) of the function defines the complexity of the DGP: "
       ,"the larger (smaller) it is, the more (less) complex it is. "
     )
     ,p(  
       "The irreducible error is given by \\(Var(\\epsilon)\\)."
       ,"When it is larger (smaller), the prediction error of the fitted model on test data is larger (smaller)."
-      ,"In this example, the variance of the error is defined in the second slider as a proportion of the true outcome \\(y\\)'s largest value."
+      ,"In this example, the variance of the error is defined in the second slider as a proportion of the range of the true outcome \\(y\\)."
     )
     ,p(
-      "We assume we fit a polynomic function of \\(X\\) in order to predict \\(y\\)."
-      ,"The degree of the fitted polynomial defines the flexibility of the model: "
-      ,"the larger (smaller) it is, the more (less) flexible it is."
+      "We assume we fit a local regression (LOESS) on \\(X\\) in order to predict \\(y\\)."
+      ,"The degree of smoothing \\(\\alpha\\) defines the flexibility of the model: "
+      ,"the larger (smaller) it is, the less (more) flexible it is. Therefore, the flexibility is given by \\(1 / \\alpha\\)."
     )
     ,p(
       "On the leftmost plot the MSE of all flexibilities 1 through 20 are plotted. "
-      ,"On the rightmost plot only one fitted polynomial is shown, with degree as fixed in the third slider."
+      ,"On the rightmost plot only one fitted model is shown, with the flexibility as fixed in the third slider."
     )
     ,p(
-      "Data is generated at random each time any of the sliders’ values is modified, except for the value of the degree of the fitted polynomial."
+      "Data is generated at random each time any of the sliders’ values is modified, except for the smoothing degree of the fitted LOESS."
     )
   )  
   

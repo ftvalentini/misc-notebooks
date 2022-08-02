@@ -7,7 +7,7 @@ server = function(input, output, session) {
   
   randomData = reactive({
     make_data(seed=RANDOM_SEED, n_rows=input$n
-              ,degree=input$degree_dgp, error_size=input$error_size)
+              ,complexity=input$complexity_dgp, error_size=input$error_size)
   })
   TestIdx = reactive({
     set.seed(RANDOM_SEED)
@@ -24,9 +24,11 @@ server = function(input, output, session) {
     plot_performance(Metrics(), complexity_vec=COMPLEXITIES)
   })
   
-  output$plot_data = renderPlotly({
+  # NOTE plotly stopped working with aes_function 2022-08
+  # output$plot_data = renderPlotly({
+  output$plot_data = renderPlot({
     plot_data(randomData(), TestIdx(), Models()
-              ,input$degree_fitted, input$degree_dgp) 
+              ,input$flexibility_fitted, input$complexity_dgp) 
   })
   
 }
